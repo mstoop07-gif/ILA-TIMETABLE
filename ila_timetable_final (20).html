@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ILA Timetable — RSHS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:11px;background:#f0f4f8;color:#000}
+.app{padding:0.5rem}
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui;padding:20px;background:linear-gradient(135deg,#1F3864 0%,#2E74B5 100%)}
+.login-logo{font-size:32px;font-weight:800;color:#fff;margin-bottom:4px;letter-spacing:-1px}
+.login-sub{font-size:14px;color:rgba(255,255,255,.75);margin-bottom:32px}
+.login-card{background:#fff;border-radius:16px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-card h2{font-size:15px;font-weight:700;color:#1F3864;margin-bottom:16px}
+.name-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;max-height:280px;overflow-y:auto}
+.name-btn{padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;background:#f8faff;cursor:pointer;font-size:11px;font-family:system-ui;color:#374151;text-align:left;transition:all .15s}
+.name-btn:hover{border-color:#1d4ed8;background:#eff6ff}
+.name-btn.selected{border-color:#1d4ed8;background:#dbeafe;color:#1e40af;font-weight:700}
+.admin-section{border-top:1px solid #e0e7ef;padding-top:16px;margin-top:8px}
+.admin-section h3{font-size:12px;font-weight:700;color:#78350f;margin-bottom:10px}
+.pin-row{display:flex;gap:8px;align-items:center}
+.pin-input{border:1.5px solid #ccc;border-radius:8px;padding:8px 12px;font-size:16px;letter-spacing:6px;width:120px;text-align:center;font-family:monospace}
+.pin-input:focus{outline:2px solid #f59e0b;border-color:#f59e0b}
+.pin-error{font-size:11px;color:#dc2626;margin-top:6px;display:none}
+.btn-login{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-family:system-ui;font-weight:700}
+.btn-staff-login{background:#1d4ed8;color:#fff;width:100%;margin-top:12px;padding:12px}
+.btn-admin-login{background:#f59e0b;color:#fff}
+.btn{border:1px solid #ccc;border-radius:6px;padding:5px 11px;font-size:11px;background:#fff;cursor:pointer;font-family:system-ui;white-space:nowrap;transition:all .15s}
+.btn:hover{background:#f0f0f0}
+.btn.danger{background:#fef2f2;border-color:#f09595;color:#a32d2d}
+.btn.success{background:#f0fff4;border-color:#86efac;color:#166534}
+.btn.primary{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+.btn.amber{background:#f59e0b;color:#fff;border-color:#d97706}
+.btn.amber.active{background:#dc2626;border-color:#dc2626}
+.btn.teal{background:#0d9488;color:#fff;border-color:#0f766e}
+.btn.purple{background:#7c3aed;color:#fff;border-color:#6d28d9}
+.btn.logout{background:#f3f4f6;color:#374151;border-color:#d1d5db;font-size:11px;padding:4px 9px}
+.toolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;font-family:system-ui;background:#fff;padding:8px 10px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.toolbar h1{font-size:15px;font-weight:800;flex:1;color:#1F3864;letter-spacing:-.3px}
+.user-badge{font-family:system-ui;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+.user-badge.admin{background:#fef3c7;color:#78350f;border:1px solid #fcd34d}
+.user-badge.staff{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.save-indicator{font-size:11px;color:#166534;padding:3px 8px;background:#f0fff4;border:1px solid #86efac;border-radius:4px;display:none;font-family:system-ui}
+.week-banner{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:system-ui;flex-wrap:wrap;background:#fff;padding:8px 12px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.week-label{font-size:13px;font-weight:700;color:#1F3864;background:#e8edf7;padding:5px 12px;border-radius:6px;border:1px solid #b5c5e0}
+.week-dates{font-size:12px;color:#555;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.week-dates input[type=date]{border:1px solid #ccc;border-radius:5px;padding:4px 8px;font-size:12px;color:#222;background:#fff}
+.view-tabs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.tab{padding:5px 11px;border-radius:6px;border:1px solid #ddd;cursor:pointer;font-size:11px;background:#fff;color:#555;font-family:system-ui;white-space:nowrap;transition:all .15s}
+.tab:hover{background:#f0f0f0}
+.tab.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600}
+.section-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px;font-family:system-ui}
+.staff-grid{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;font-family:system-ui}
+.staff-chip{padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1.5px solid #ddd;user-select:none;background:#f5f5f5;color:#444;display:flex;align-items:center;gap:3px;transition:all .15s}
+.staff-chip:hover{border-color:#1d4ed8;background:#eff6ff}
+.staff-chip.selected{background:#dbeafe;color:#1e40af;border-color:#93c5fd;font-weight:700}
+.staff-chip.on-leave{background:#fef3c7;color:#78350f;border-color:#fcd34d}
+.staff-chip.absent-chip{background:#e5e7eb;color:#6b7280;border-color:#9ca3af;text-decoration:line-through}
+.staff-chip.has-msg{border-color:#ef4444}
+.Mon-b1{background:#4CAF50;color:#fff}.Mon-b2{background:#2196F3;color:#fff}.Mon-b3{background:#FFC107;color:#333}
+.Tue-b1{background:#4CAF50;color:#fff}.Tue-b2{background:#2196F3;color:#fff}.Tue-b3{background:#F44336;color:#fff}
+.Wed-b1{background:#7B52AB;color:#fff}.Wed-b2{background:#7B52AB;color:#fff}.Wed-b3{background:#7B52AB;color:#fff}
+.Thu-b1{background:#F44336;color:#fff}.Thu-b2{background:#FFC107;color:#333}.Thu-b3{background:#2196F3;color:#fff}
+.Fri-b1{background:#F44336;color:#fff}.Fri-b2{background:#2196F3;color:#fff}.Fri-b3{background:#4CAF50;color:#fff}
+.blk-break{background:#f0f0f0;color:#333}.blk-hours{background:#f5f5f5;color:#333}
+.blk-absent{background:#9ca3af!important;color:#374151!important}
+.blk-ph{background:#7c3aed!important;color:#fff!important}
+.c-header{background:#1F3864;color:#fff}.c-namerow{background:#2E74B5;color:#fff}
+table.tt{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+table.tt th,table.tt td{border:2px solid #fff;padding:0;vertical-align:top;word-break:break-word}
+table.tt th{text-align:center;font-weight:700;font-size:10px;padding:5px 3px}
+.ci{padding:6px 7px;min-height:75px;position:relative}
+.ci.editable:hover{outline:2px dashed rgba(255,255,255,.7);outline-offset:-2px;cursor:pointer}
+.ci.editable:hover::after{content:'✏️';position:absolute;top:3px;right:3px;font-size:9px}
+.ci-break{padding:4px 6px;min-height:20px;text-align:center;font-size:10px}
+.ci-label{padding:6px 7px;min-height:75px;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:2px}
+.ci .prog{font-weight:700;font-size:10px;line-height:1.3;margin-bottom:2px}
+.room-text{font-size:9px;font-style:italic;margin-bottom:2px;line-height:1.5}
+.students-wrap{margin-top:3px;line-height:1.7}
+.with-name{display:inline-block;background:#be185d;color:#fff;font-weight:700;font-size:8px;padding:1px 6px;border-radius:20px;white-space:nowrap;font-style:normal;vertical-align:middle}
+.ks-high{display:inline-block;background:#FFE500;color:#1a1200;font-weight:700;font-size:8px;padding:1px 5px;border-radius:3px;margin:1px;border:1px solid #b8a000;white-space:nowrap}
+.ks-support{display:inline-block;background:#FF9800;color:#fff;font-weight:600;font-size:8px;padding:1px 5px;border-radius:3px;margin:1px;border:1px solid #cc7000;white-space:nowrap}
+.ks-other{font-size:8.5px;color:inherit;opacity:.85;display:inline}
+.absent-banner{border:1.5px solid #9ca3af;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;display:flex;align-items:center;gap:8px;font-family:system-ui;flex-wrap:wrap;background:#f9fafb}
+.ph-banner{background:#f3f0ff;border:1.5px solid #a78bfa;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;font-family:system-ui;color:#5b21b6;display:flex;align-items:center;gap:8px}
+.edit-banner{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#78350f;font-family:system-ui;display:flex;align-items:center;gap:8px}
+.msg-all-banner{display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:2px solid #ef4444;border-radius:10px;padding:10px 14px;margin-bottom:8px;font-family:system-ui}
+.msg-personal-banner{display:flex;align-items:flex-start;gap:10px;background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;padding:10px 14px;margin-bottom:8px;font-family:system-ui}
+.bday-banner{display:flex;align-items:flex-start;gap:10px;background:linear-gradient(135deg,#fef9c3,#fef3c7);border:2px solid #f59e0b;border-radius:12px;padding:12px 16px;margin-bottom:8px;font-family:system-ui}
+.panel{background:#fff;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.panel h3{font-size:13px;font-weight:700;color:#1F3864;margin-bottom:10px}
+.booking-form{border-radius:10px;padding:14px;margin-bottom:10px;font-family:system-ui}
+.booking-form.staff-form{background:#f8faff;border:1.5px solid #b5c5e0}
+.booking-form.student-form{background:#fdf4ff;border:1.5px solid #f9a8d4}
+.booking-form.ph-form{background:#f5f3ff;border:1.5px solid #c4b5fd}
+.booking-form h3{font-size:13px;font-weight:700;margin-bottom:10px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group label{font-size:11px;font-weight:600;color:#555}
+.form-group select,.form-group input[type=text],.form-group input[type=date],.form-group input[type=password]{border:1px solid #ccc;border-radius:5px;padding:6px 8px;font-size:12px;background:#fff;color:#222}
+.form-group textarea{border:1px solid #ccc;border-radius:5px;padding:6px 8px;font-size:12px;background:#fff;color:#222;resize:vertical;min-height:60px}
+.booking-entry{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border:1px solid #e0e7ef;border-radius:7px;margin-bottom:5px;font-size:12px;font-family:system-ui;flex-wrap:wrap}
+.booking-entry.active-now{border-color:#9ca3af;background:#f9fafb}
+.booking-entry.ph-active{border-color:#a78bfa;background:#f3f0ff}
+.booking-entry.upcoming{border-color:#93c5fd;background:#eff6ff}
+.booking-entry.past{opacity:.5}
+.del-btn{margin-left:auto;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px;padding:2px 6px;border-radius:4px}
+.del-btn:hover{color:#ef4444;background:#fee2e2}
+.lbadge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
+.l-sick{background:#fee2e2;color:#991b1b}.l-annual{background:#dcfce7;color:#166534}.l-professional{background:#e0e7ff;color:#3730a3}.l-other{background:#f3f4f6;color:#374151}.l-student{background:#fce7f3;color:#831843}.l-ph{background:#ede9fe;color:#5b21b6}
+.student-card{border:1.5px solid #ddd;border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#fff;font-family:system-ui;font-size:12px}
+.student-card.alert{border-color:#9ca3af;background:#f3f4f6}
+.student-card.warn{border-color:#fcd34d;background:#fffbeb}
+.student-card.away{border-color:#f9a8d4;background:#fdf4ff}
+.ila-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;margin:2px;border:1px solid transparent}
+.ila-pill.ok{background:#dcfce7;color:#166534;border-color:#86efac}
+.ila-pill.gone{background:#e5e7eb;color:#6b7280;border-color:#9ca3af;text-decoration:line-through;opacity:.8}
+.ila-pill.lr{background:#fef3c7;color:#78350f;border-color:#fcd34d}
+.group-label{font-family:system-ui;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 4px}
+.search-input{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;margin-bottom:8px;font-family:system-ui;background:#fff}
+.last-resort-box{margin-top:10px;padding:10px 14px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;font-family:system-ui;font-size:12px}
+.lr-person{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:.5px solid #fde68a}
+.lr-person:last-child{border-bottom:none}
+.lr-av{width:30px;height:30px;border-radius:50%;background:#fde68a;color:#78350f;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.legend-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:10px;font-family:system-ui;align-items:center;background:#fff;padding:6px 10px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.badge{font-family:system-ui;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;display:inline-block}
+.badge-absent{background:#e5e7eb;color:#374151;border:1px solid #9ca3af}
+.badge-leave{background:#fef3c7;color:#78350f;border:1px solid #fcd34d}
+.badge-ok{background:#dcfce7;color:#166534}
+.badge-warn{background:#fef3c7;color:#92400e}
+.badge-upcoming{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.badge-away{background:#fce7f3;color:#831843;border:1px solid #f9a8d4}
+.badge-ph{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.edit-panel{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:14px;margin-bottom:10px;font-family:system-ui}
+.edit-panel h3{font-size:13px;font-weight:700;color:#78350f;margin-bottom:10px}
+.edit-section{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #fde68a}
+.edit-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.edit-section h4{font-size:12px;font-weight:700;color:#555;margin-bottom:6px}
+.hours-grid{display:grid;grid-template-columns:70px repeat(5,1fr);gap:4px;margin-top:6px;font-size:10px}
+.hours-grid .hdr{font-weight:700;text-align:center;color:#555;padding:2px}
+.hours-grid input{border:1px solid #ccc;border-radius:3px;padding:2px 4px;font-size:10px;text-align:center;width:100%}
+.editable-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid #f3f4f6;font-size:12px;flex-wrap:wrap}
+.editable-row:last-child{border-bottom:none}
+.cover-assign-btn{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.5);border-radius:4px;color:#fff;font-size:8px;padding:2px 5px;cursor:pointer;font-family:system-ui}
+.cover-summary-card{border:1.5px solid #99f6e4;border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#f0fdfa;font-family:system-ui;font-size:12px}
+.msg-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;flex-wrap:wrap}
+.msg-row:last-child{border-bottom:none}
+.msg-name{font-weight:600;min-width:130px;font-size:12px}
+.msg-text-box{flex:1;font-size:12px;color:#374151;background:#f8faff;border:1px solid #e0e7ef;border-radius:6px;padding:5px 8px;min-height:34px;white-space:pre-wrap}
+.msg-text-box.empty{color:#9ca3af;font-style:italic}
+.msg-edit-btn{background:none;border:1px solid #cbd5e1;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;color:#374151;flex-shrink:0;font-family:system-ui}
+.msg-edit-btn:hover{background:#f1f5f9}
+.msg-clear-btn{background:none;border:1px solid #fca5a5;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;color:#dc2626;flex-shrink:0;font-family:system-ui}
+.bday-entry{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid #e0e7ef;border-radius:7px;margin-bottom:5px;font-size:12px;font-family:system-ui;flex-wrap:wrap;background:#fff}
+.bday-entry.this-week{border-color:#f59e0b;background:#fffbeb}
+.bday-entry.upcoming-bday{border-color:#93c5fd;background:#eff6ff}
+.ils-key{display:flex;gap:12px;flex-wrap:wrap;background:#f0f9ff;border:1.5px solid #7dd3fc;border-radius:8px;padding:8px 14px;margin-bottom:8px;align-items:center;font-family:system-ui;font-size:12px}
+.ils-ki{font-weight:800;font-size:13px;color:#0c4a6e}
+.ils-blk-cell{padding:6px 8px;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;cursor:default}
+.ils-blk-cell.editable:hover{outline:2px dashed rgba(255,255,255,.6);outline-offset:-2px;cursor:pointer}
+.ils-blk-cell.editable:hover::after{content:'✏️';position:absolute;top:3px;right:4px;font-size:8px}
+.ils-duty-cell{padding:5px 6px;min-height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;cursor:default}
+.ils-duty-cell.editable:hover{outline:2px dashed #94a3b8;outline-offset:-2px;cursor:pointer}
+.ils-duty-cell.editable:hover::after{content:'✏️';position:absolute;top:2px;right:4px;font-size:8px}
+.ils-init{font-size:20px;font-weight:800;letter-spacing:1px;font-family:system-ui}
+.ils-init-sm{font-size:13px;font-weight:700;font-family:system-ui;line-height:1.5}
+.ils-duty-bg{background:#f8fafc;color:#374151}
+.ils-info-bg{background:#f1f5f9;color:#555}
+.archive-card{border:1.5px solid #ddd;border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#fff;font-family:system-ui;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;transition:all .15s}
+.archive-card:hover{border-color:#1d4ed8;background:#f8fbff}
+.archive-card.active-archive{border-color:#1d4ed8;background:#eff6ff}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:14px;padding:20px;max-width:500px;width:100%;font-family:system-ui;box-shadow:0 16px 48px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:8px;color:#1F3864}
+.modal .sub{font-size:11px;color:#555;margin-bottom:12px;padding:6px 10px;background:#f3f4f6;border-radius:5px}
+.modal label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:3px;margin-top:10px}
+.modal input[type=text],.modal select,.modal textarea,.modal input[type=date]{width:100%;border:1px solid #ccc;border-radius:5px;padding:7px 9px;font-size:12px;color:#222;background:#fff}
+.modal textarea{resize:vertical;min-height:80px}
+.modal .modal-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap}
+.nz-ph-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid #e9d5ff;font-size:11px;flex-wrap:wrap}
+.nz-ph-row:last-child{border-bottom:none}
+.student-away-bar{background:#fdf4ff;border:1.5px solid #f9a8d4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-family:system-ui;font-size:12px;color:#831843}
+.kobe-table-wrap{overflow-x:auto}
+
+.blk-ph{background:#9ca3af!important;color:#374151!important}
+.blk-col-picked{border:2px solid #1F3864!important;box-shadow:0 0 0 2px rgba(31,56,100,.3)!important}
+.rte-toolbar{display:flex;align-items:center;gap:3px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:5px 5px 0 0;padding:3px 5px;flex-wrap:wrap}
+.rte-toolbar button{background:#fff;border:1px solid #cbd5e1;border-radius:3px;padding:2px 7px;font-size:12px;cursor:pointer;font-family:system-ui;line-height:1.4;min-width:24px}
+.rte-toolbar button:hover{background:#e0e7ff}
+.rte-sep{width:1px;background:#cbd5e1;height:16px;margin:0 2px;flex-shrink:0}
+.rte-field{border:1px solid #cbd5e1;border-top:none;border-radius:0 0 5px 5px;padding:6px 8px;min-height:32px;outline:none;font-size:11px;font-family:system-ui;line-height:1.5;background:#fff;word-break:break-word}
+.rte-field:focus{border-color:#6366f1}
+.rte-field:empty:before{content:attr(data-placeholder);color:#9ca3af;pointer-events:none}
+.rte-tall{min-height:60px}
+.draft-banner{background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b;border-radius:9px;padding:9px 15px;margin-bottom:7px;font-family:system-ui;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.live-banner{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #16a34a;border-radius:9px;padding:7px 15px;margin-bottom:7px;font-family:system-ui;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.lsec{border-radius:9px;padding:13px;margin-bottom:13px;font-family:system-ui}
+.lsec-g{background:#f0fdf4;border:1.5px solid #86efac}.lsec-b{background:#eff6ff;border:1.5px solid #93c5fd}
+.lsec-y{background:#fefce8;border:1.5px solid #fde047}.lsec-r{background:#fff1f2;border:1.5px solid #fca5a5}
+.lhdr{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
+.ldot{width:12px;height:12px;border-radius:50%;flex-shrink:0}.ltitle{font-size:12px;font-weight:800}
+.srow{display:flex;align-items:center;gap:7px;padding:5px 9px;background:#fff;border-radius:6px;margin-bottom:4px;font-size:11px;border:1px solid #e5e7eb}
+.srow-unc{border-color:#ef4444;background:#fff5f5}.srow-par{border-color:#f59e0b;background:#fffbeb}.srow-cov{border-color:#86efac;background:#f0fdf4}
+.covdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.dot-c{background:#22c55e}.dot-p{background:#f59e0b}.dot-u{background:#ef4444}
+.unc-alert{background:#fef2f2;border:1.5px solid #ef4444;border-radius:7px;padding:9px 13px;margin-bottom:9px;font-family:system-ui}
+.unc-item{display:flex;align-items:flex-start;gap:7px;padding:4px 0;border-bottom:.5px solid #fecaca;font-size:10px}
+.unc-item:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div id="loginScreen">
+  <div class="login-screen">
+    <div class="login-logo">ILA Timetable</div>
+    <div class="login-sub">RSHS Inclusive Learning Assistant</div>
+    <div class="login-card">
+      <h2>👋 Who are you?</h2>
+      <div class="name-grid" id="nameGrid"></div>
+      <button class="btn-login btn-staff-login" onclick="loginAsStaff()">View my timetable →</button>
+      <div class="admin-section">
+        <h3>🔐 Admin access (Fleur &amp; Mariette)</h3>
+        <div class="pin-row">
+          <input type="password" class="pin-input" id="pinInput" maxlength="4" placeholder="PIN" onkeydown="if(event.key==='Enter')adminLogin()">
+          <button class="btn-login btn-admin-login" onclick="adminLogin()">Enter</button>
+        </div>
+        <div class="pin-error" id="pinError">Incorrect PIN. Try again.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="mainApp" style="display:none" class="app">
+<div class="toolbar">
+  <h1>🏫 ILA Timetable — RSHS</h1>
+  <span class="save-indicator" id="saveIndicator">✓ Saved</span>
+  <div id="absenceCount"></div>
+  <div id="userBadge"></div>
+  <div id="adminTools" style="display:none;gap:5px;flex-wrap:wrap">
+    <button class="btn amber" id="editModeBtn" onclick="toggleEditMode()">✏️ Edit mode</button>
+    <button class="btn purple" onclick="archiveCurrentWeek()">📦 Archive week</button>
+    <button class="btn" id="newDraftBtn" onclick="startDraft()" style="background:#0d9488;color:#fff;border-color:#0d9488;display:none">📝 New draft</button>
+    <button class="btn" id="switchBtn" onclick="toggleDraftView()" style="display:none"></button>
+  </div>
+  <button class="btn logout" onclick="logout()">⇠ Log out</button>
+</div>
+<div class="week-banner">
+  <div class="week-label" id="weekLabel">Term 2 — Week 5</div>
+  <div class="week-dates">
+    <span style="font-size:11px;color:#888">Week of:</span>
+    <input type="date" id="weekStart" value="2026-05-11" onchange="onWeekChange()">
+    <span style="font-size:11px;color:#888">to</span>
+    <input type="date" id="weekEnd" value="2026-05-15" readonly style="background:#f5f5f5;color:#555">
+  </div>
+  <span id="adminWeekEdit" style="display:none;font-size:11px;cursor:pointer;color:#1d4ed8;text-decoration:underline" onclick="toggleTermWeekPanel()">Edit term/week ✏️</span>
+</div>
+<div id="termWeekPanel" style="display:none;margin-bottom:8px;font-family:system-ui;font-size:12px;background:#f8faff;border:1px solid #b5c5e0;border-radius:8px;padding:10px;gap:10px;align-items:center;flex-wrap:wrap">
+  <label>Term: <select id="termNum" onchange="updateWeekLabel()"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+  <label>Week: <select id="weekNum" onchange="updateWeekLabel()"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></label>
+  <button class="btn success" onclick="toggleTermWeekPanel()">✓ Done</button>
+</div>
+<div id="phActiveBanner"></div>
+<div id="msgAllBanner"></div>
+<div id="msgPersonalBanner"></div>
+<div id="bdayBanner"></div>
+<div id="draftBanner" style="display:none" class="draft-banner">
+  <span style="font-size:20px">📝</span>
+  <div style="flex:1"><div style="font-size:12px;font-weight:800;color:#78350f">DRAFT MODE — Next week</div><div style="font-size:10px;color:#92400e" id="draftSub">Staff still see live timetable</div></div>
+  <button class="btn" style="background:#16a34a;color:#fff;border-color:#16a34a;font-size:11px;font-weight:700;padding:5px 12px" onclick="publishDraft()">🚀 Publish to staff</button>
+  <button class="btn danger" style="font-size:10px;padding:3px 9px" onclick="discardDraft()">✕ Discard</button>
+</div>
+<div id="liveBanner" style="display:none" class="live-banner">
+  <span>✅</span><div style="font-size:11px;font-weight:700;color:#14532d" id="liveSub">LIVE — Staff are viewing this timetable</div>
+</div>
+<div id="editBanner" style="display:none" class="edit-banner">✏️ <strong>Edit mode ON</strong> — click any block to edit. <button class="btn" style="font-size:11px;padding:3px 9px;margin-left:auto" onclick="toggleEditMode()">Exit</button></div>
+<div id="adminTabs" style="display:none" class="view-tabs">
+  <div class="tab active" onclick="setView('staff')" id="tab-staff">Staff timetable</div>
+  <div class="tab" onclick="setView('messages')" id="tab-messages" style="border-color:#ef4444;color:#dc2626">📢 Messages</div>
+  <div class="tab" onclick="setView('students')" id="tab-students">Key students</div>
+  <div class="tab" onclick="setView('kobe')" id="tab-kobe">Kobe</div>
+  <div class="tab" onclick="setView('daniel')" id="tab-daniel" style="border-color:#0d9488;color:#0d9488">🎒 Daniel</div>
+  <div class="tab" onclick="setView('caleb')" id="tab-caleb" style="border-color:#0d9488;color:#0d9488">🎒 Caleb</div>
+  <div class="tab" onclick="setView('gabrielle')" id="tab-gabrielle" style="border-color:#7c3aed;color:#7c3aed">👩 Gabrielle</div>
+  <div class="tab" onclick="setView('ilspace')" id="tab-ilspace" style="border-color:#0369a1;color:#0369a1">🏫 IL Space</div>
+  <div class="tab" onclick="setView('leave')" id="tab-leave">📅 Leave</div>
+  <div class="tab" onclick="setView('ph')" id="tab-ph" style="border-color:#7c3aed;color:#7c3aed">🗓 Public holidays</div>
+  <div class="tab" onclick="setView('studentabs')" id="tab-studentabs">🎒 Student absences</div>
+  <div class="tab" onclick="setView('coverage')" id="tab-coverage">Coverage gaps</div>
+  <div class="tab" onclick="setView('covers')" id="tab-covers">🔄 Covers</div>
+  <div class="tab" onclick="setView('birthdays')" id="tab-birthdays" style="border-color:#f59e0b;color:#d97706">🎂 Birthdays</div>
+  <div class="tab" onclick="setView('history')" id="tab-history" style="border-color:#7c3aed;color:#7c3aed">🗂 History</div>
+  <div class="tab" onclick="setView('allstudents')" id="tab-allstudents" style="border-color:#0d9488;color:#0d9488">👥 All students</div>
+  <div class="tab" onclick="setView('editpanel')" id="tab-editpanel" style="border-color:#fcd34d;color:#78350f">⚙️ Edit staff</div>
+</div>
+<div id="staffTabs" style="display:none" class="view-tabs">
+  <div class="tab active" onclick="setView('staff')" id="stab-staff">Staff timetable</div>
+  <div class="tab" onclick="setView('messages')" id="stab-messages" style="border-color:#ef4444;color:#dc2626">📢 Messages</div>
+  <div class="tab" onclick="setView('kobe')" id="stab-kobe">Kobe</div>
+  <div class="tab" onclick="setView('daniel')" id="stab-daniel" style="border-color:#0d9488;color:#0d9488">🎒 Daniel</div>
+  <div class="tab" onclick="setView('caleb')" id="stab-caleb" style="border-color:#0d9488;color:#0d9488">🎒 Caleb</div>
+  <div class="tab" onclick="setView('gabrielle')" id="stab-gabrielle" style="border-color:#7c3aed;color:#7c3aed">👩 Gabrielle</div>
+  <div class="tab" onclick="setView('ilspace')" id="stab-ilspace" style="border-color:#0369a1;color:#0369a1">🏫 IL Space</div>
+  <div class="tab" onclick="setView('history')" id="stab-history" style="border-color:#7c3aed;color:#7c3aed">🗂 History</div>
+  <div class="tab" onclick="setView('allstudents')" id="stab-allstudents" style="border-color:#0d9488;color:#0d9488">👥 All students</div>
+</div>
+<div class="legend-bar">
+  <strong>Colours:</strong>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#4CAF50;width:16px;height:10px;display:inline-block;border-radius:2px"></span>Line 3</span>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#2196F3;width:16px;height:10px;display:inline-block;border-radius:2px"></span>Line 1 &amp; 2</span>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#FFC107;width:16px;height:10px;display:inline-block;border-radius:2px"></span>Line 5</span>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#F44336;width:16px;height:10px;display:inline-block;border-radius:2px"></span>Line 4</span>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#7B52AB;width:16px;height:10px;display:inline-block;border-radius:2px"></span></span>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#9ca3af;width:16px;height:10px;display:inline-block;border-radius:2px"></span>Absent</span>
+  <span style="display:inline-flex;align-items:center;gap:3px"><span style="background:#7c3aed;width:16px;height:10px;display:inline-block;border-radius:2px"></span>Public Holiday</span>
+</div>
+<div id="view-staff">
+  <div class="section-label">Select staff member</div>
+  <div class="staff-grid" id="staffGrid"></div>
+  <div id="absentBanner" style="display:none" class="absent-banner">⬜ <span id="absentBannerText"></span></div>
+  <div id="timetableWrap"></div>
+</div>
+<div id="view-messages" style="display:none">
+  <div class="panel"><h3>📢 All-staff message</h3><div id="allMsgDisplay"></div><div id="allMsgEditWrap" style="display:none;margin-top:8px"><textarea id="allMsgInput" placeholder="Type a message for ALL staff..." style="width:100%;border:1.5px solid #ef4444;border-radius:6px;padding:8px;font-size:13px;font-family:system-ui;resize:vertical;min-height:80px"></textarea><div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end"><button class="btn" onclick="cancelAllMsg()">Cancel</button><button class="btn danger" onclick="clearAllMsg()">Clear</button><button class="btn primary" style="background:#ef4444;border-color:#ef4444" onclick="saveAllMsg()">📢 Send to all</button></div></div><div id="allMsgBtn" style="margin-top:8px"></div></div>
+  <div class="panel" id="personalMsgPanel"><h3>✉️ Personal notes per ILA</h3><div id="personalList"></div></div>
+  <div id="myMsgPanel" style="display:none" class="panel"><h3>✉️ Your messages</h3><div id="myMsgContent"></div></div>
+</div>
+<div id="view-students" style="display:none"><input class="search-input" type="text" placeholder="Search student..." oninput="filterStudents(this.value)"><div id="studentsPanel"></div></div>
+<div id="view-kobe" style="display:none">
+  <div class="section-label">Kobe Afoa — weekly support schedule</div>
+  <div id="kobeAwayBanner" style="display:none" class="student-away-bar">🎒 <span id="kobeAwayText"></span></div>
+  <div class="kobe-table-wrap"><div id="kobeTable"></div></div>
+</div>
+<div id="view-daniel" style="display:none">
+  <div class="section-label">Daniel Batten — ILA support schedule</div>
+  <div id="danielAwayBar" style="display:none" class="student-away-bar">🎒 <span id="danielAwayText"></span></div>
+  <div id="danielTable"></div>
+</div>
+<div id="view-caleb" style="display:none">
+  <div class="section-label">Caleb Walker — ILA support schedule</div>
+  <div id="calebAwayBar" style="display:none" class="student-away-bar">🎒 <span id="calebAwayText"></span></div>
+  <div id="calebTable"></div>
+</div>
+<div id="view-gabrielle" style="display:none">
+  <div class="section-label">Gabrielle — Relief teacher supporting Caleb</div>
+  <div style="font-size:11px;color:#7c3aed;font-weight:600;margin-bottom:6px;font-family:system-ui">Relief teacher · Not an ILA</div>
+  <div id="gabrielleTable"></div>
+</div>
+<div id="view-ilspace" style="display:none">
+  <div class="section-label">IL Space Roster 2026</div>
+  <div style="font-size:11px;color:#0369a1;font-weight:600;margin-bottom:6px;font-family:system-ui">RSHS Hours: 9.30–3.00pm · Breaks: 20 min + 30 min</div>
+  <div class="ils-key"><strong style="font-size:11px;color:#0369a1">Key:</strong><span><span class="ils-ki">FKA</span> = Fleur Karasawa</span><span><span class="ils-ki">JAH</span> = Jasmine</span><span><span class="ils-ki">LSP</span> = Lisa</span><span id="ilsEditHint" style="font-size:11px;color:#6b7280;margin-left:auto"></span></div>
+  <div id="ilspaceTable"></div>
+</div>
+<div id="view-leave" style="display:none">
+  <div class="booking-form staff-form"><h3 style="color:#1F3864">📅 Book staff leave in advance</h3>
+  <div class="form-row"><div class="form-group"><label>Staff member</label><select id="leaveStaff" style="min-width:150px"></select></div><div class="form-group"><label>From</label><input type="date" id="leaveFrom"></div><div class="form-group"><label>To</label><input type="date" id="leaveTo"></div><div class="form-group"><label>Type</label><select id="leaveType"><option value="sick">Sick leave</option><option value="annual">Annual leave</option><option value="professional">Professional development</option><option value="other">Other</option></select></div><div class="form-group"><label>Note</label><input type="text" id="leaveNote" style="min-width:100px"></div></div>
+  <button class="btn primary" onclick="addLeave()">+ Book leave</button></div>
+  <div class="section-label">All booked leave</div>
+  <div style="font-size:11px;color:#6b7280;font-family:system-ui;margin-bottom:6px">Current week: <span id="currentWeekDisplay"></span></div>
+  <div id="leaveList"></div>
+</div>
+<div id="view-ph" style="display:none">
+  <div class="booking-form ph-form"><h3 style="color:#5b21b6">🗓 Book public holidays in advance</h3>
+  <p style="font-size:11px;color:#6b7280;margin-bottom:10px;font-family:system-ui">Holidays auto-activate when the week arrives — no manual toggling needed.</p>
+  <div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:8px;padding:10px 14px;margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:#5b21b6;margin-bottom:8px;font-family:system-ui">⚡ Quick-add NZ public holidays 2026</div><div id="nzPhQuick"></div></div>
+  <div class="form-row"><div class="form-group"><label>Holiday name</label><input type="text" id="phName" placeholder="e.g. Waitangi Day" style="min-width:170px"></div><div class="form-group"><label>Date</label><input type="date" id="phDate"></div><button class="btn" style="background:#7c3aed;color:#fff;border-color:#7c3aed;align-self:flex-end" onclick="addPH()">+ Add</button></div></div>
+  <div class="section-label">All booked public holidays</div>
+  <div style="font-size:11px;color:#6b7280;font-family:system-ui;margin-bottom:6px">Current week: <span id="phWeekDisplay"></span></div>
+  <div id="phList"></div>
+</div>
+<div id="view-studentabs" style="display:none">
+  <div class="booking-form student-form"><h3 style="color:#831843">🎒 Book student absence</h3>
+  <div class="form-row"><div class="form-group"><label>Student</label><select id="studentAbsName" style="min-width:200px"><option value="">— Select —</option></select></div><div class="form-group"><label>From</label><input type="date" id="studentAbsFrom"></div><div class="form-group"><label>To</label><input type="date" id="studentAbsTo"></div><div class="form-group"><label>Reason</label><select id="studentAbsReason"><option value="travel">Travel</option><option value="medical">Medical</option><option value="family">Family</option><option value="other">Other</option></select></div><div class="form-group"><label>Note</label><input type="text" id="studentAbsNote" style="min-width:120px"></div></div>
+  <button class="btn primary" style="background:#831843;border-color:#831843" onclick="addStudentAbs()">+ Book absence</button></div>
+  <div class="section-label">All booked student absences</div>
+  <div id="studentAbsList"></div>
+</div>
+<div id="view-coverage" style="display:none"><div class="section-label">Absence &amp; coverage summary</div><div id="coveragePanel"></div></div>
+<div id="view-covers" style="display:none">
+  <div style="background:#f0fdfa;border:1.5px solid #99f6e4;border-radius:10px;padding:14px;margin-bottom:10px;font-family:system-ui">
+    <h3 style="font-size:13px;font-weight:700;color:#134e4a;margin-bottom:8px">🔄 Cover assignments — this week</h3>
+    <div class="form-row"><div class="form-group"><label>Absent staff</label><select id="coverAbsentStaff" style="min-width:140px"></select></div><div class="form-group"><label>Day</label><select id="coverDay"><option value="Mon">Monday</option><option value="Tue">Tuesday</option><option value="Wed">Wednesday</option><option value="Thu">Thursday</option><option value="Fri">Friday</option></select></div><div class="form-group"><label>Block</label><select id="coverBlock"><option value="b1">Block 1</option><option value="b2">Block 2</option><option value="b3">Block 3</option></select></div><div class="form-group"><label>Covering ILA</label><select id="coveringILA" style="min-width:140px"></select></div></div>
+    <button class="btn teal" onclick="assignCover()">📌 Assign cover</button>
+  </div>
+  <div class="section-label">Active cover assignments</div>
+  <div id="coverList"></div>
+</div>
+<div id="view-birthdays" style="display:none">
+  <div class="panel"><h3>🎂 ILA Birthdays <span style="font-size:10px;font-weight:400;color:#555">— Fleur &amp; Mariette only</span></h3>
+  <p style="font-size:11px;color:#6b7280;margin-bottom:10px;font-family:system-ui">A 🎂 banner appears automatically during someone's birthday week!</p>
+  <div style="background:#f8faff;border:1.5px solid #b5c5e0;border-radius:8px;padding:12px;margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:#1F3864;margin-bottom:8px;font-family:system-ui">+ Add / update a birthday</div>
+  <div class="form-row"><div class="form-group"><label>Staff member</label><select id="bdayStaff" style="min-width:160px"></select></div><div class="form-group"><label>Day</label><select id="bdayDay"></select></div><div class="form-group"><label>Month</label><select id="bdayMonth"></select></div><button class="btn primary" onclick="saveBirthday()" style="align-self:flex-end">🎂 Save birthday</button></div></div>
+  <div id="bdayList"></div></div>
+</div>
+<div id="view-history" style="display:none">
+  <div style="background:#1F3864;color:#fff;padding:10px 14px;border-radius:8px;margin-bottom:10px;font-family:system-ui;font-size:12px;font-weight:700">🗂 Timetable History — archived weeks</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-family:system-ui;align-items:flex-end">
+    <div class="form-group"><label>Search</label><input type="text" id="historySearch" style="min-width:150px" oninput="renderHistory()"></div>
+    <div class="form-group"><label>Term</label><select id="historyTermFilter" onchange="renderHistory()"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+    <div class="form-group"><label>Week</label><select id="historyWeekFilter" onchange="renderHistory()"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option></select></div>
+    <button class="btn" onclick="clearHistoryFilters()">Clear</button>
+  </div>
+  <div id="historyList"></div>
+  <div id="historyDetailWrap" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin:12px 0 6px;font-family:system-ui;flex-wrap:wrap">
+      <strong id="historyDetailTitle" style="font-size:13px;color:#1F3864"></strong>
+      <button class="btn" style="font-size:11px;padding:3px 9px" onclick="closeHistoryDetail()">✕ Close</button>
+    </div>
+    <div class="staff-grid" id="historyStaffGrid"></div>
+    <div id="historyTimetableWrap"></div>
+  </div>
+</div>
+<div id="view-editpanel" style="display:none">
+  <div class="edit-panel"><h3>⚙️ Manage staff &amp; students</h3>
+  <div class="edit-section"><h4>Add new staff member</h4><div class="form-row"><div class="form-group"><label>Full name</label><input type="text" id="newStaffName"></div><div class="form-group"><label>Default hours</label><input type="text" id="newStaffHours" style="min-width:120px" placeholder="e.g. 9.30–3.00pm"></div><button class="btn primary" onclick="addNewStaff()" style="align-self:flex-end">+ Add staff</button></div></div>
+  <div class="edit-section"><h4>Edit staff hours</h4><div class="form-row" style="margin-bottom:8px"><div class="form-group"><label>Staff member</label><select id="editHoursStaff" style="min-width:180px" onchange="renderHoursEditor()"></select></div></div><div id="hoursEditorWrap"></div></div>
+  <div class="edit-section"><h4>Remove staff member</h4><div class="form-row"><div class="form-group"><label>Staff member</label><select id="removeStaffSel" style="min-width:180px"></select></div><button class="btn danger" onclick="removeStaff()" style="align-self:flex-end">Remove</button></div></div>
+  <div class="edit-section"><h4>Add key student</h4><div class="form-row"><div class="form-group"><label>Name</label><input type="text" id="newStudentName"></div><div class="form-group"><label>Support level</label><select id="newStudentTier"><option value="high">Must always have ILA</option><option value="support">May need support</option></select></div><div class="form-group"><label>Preferred ILAs (comma separated)</label><input type="text" id="newStudentPreferred" style="min-width:160px"></div><button class="btn primary" onclick="addNewStudent()" style="align-self:flex-end">+ Add</button></div></div>
+  <div class="edit-section"><h4>Edit / remove key students</h4><div id="studentEditList"></div></div>
+  <div class="edit-section"><h4>🔐 Change admin PIN</h4><div class="form-row"><div class="form-group"><label>New PIN</label><input type="password" id="newPinInput" maxlength="4" style="width:100px;letter-spacing:4px;font-family:monospace"></div><div class="form-group"><label>Confirm</label><input type="password" id="confirmPinInput" maxlength="4" style="width:100px;letter-spacing:4px;font-family:monospace"></div><button class="btn primary" onclick="changePin()" style="align-self:flex-end">Update PIN</button></div></div>
+  </div>
+</div>
+</div>
+<!-- MODALS -->
+<div id="blockModal" class="modal-overlay" style="display:none"><div class="modal"><h3 id="modalTitle">Edit block</h3>
+<div style="font-size:10px;font-weight:600;color:#555;margin-bottom:3px">Programme / subject</div>
+<div class="rte-toolbar"><button type="button" onclick="rFmt('bold','rte-prog')"><b>B</b></button><button type="button" onclick="rFmt('italic','rte-prog')"><i>I</i></button><button type="button" onclick="rFmt('underline','rte-prog')"><u>U</u></button><span class="rte-sep"></span><button type="button" onclick="rSize('1','rte-prog')" style="font-size:9px">S</button><button type="button" onclick="rSize('3','rte-prog')" style="font-size:11px">M</button><button type="button" onclick="rSize('5','rte-prog')" style="font-size:14px">L</button><span class="rte-sep"></span><input type="color" value="#000000" title="Text colour" onchange="rColor(this.value,'rte-prog')" style="width:22px;height:22px;border:1px solid #ccc;border-radius:3px;cursor:pointer;padding:1px"></div>
+<div class="rte-field" id="rte-prog" contenteditable="true" data-placeholder="Programme / subject"></div>
+<div style="font-size:10px;font-weight:600;color:#555;margin:9px 0 3px">Room / with note</div>
+<div class="rte-toolbar"><button type="button" onclick="rFmt('bold','rte-room')"><b>B</b></button><button type="button" onclick="rFmt('italic','rte-room')"><i>I</i></button><button type="button" onclick="rFmt('underline','rte-room')"><u>U</u></button><span class="rte-sep"></span><button type="button" onclick="rSize('1','rte-room')" style="font-size:9px">S</button><button type="button" onclick="rSize('3','rte-room')" style="font-size:11px">M</button><button type="button" onclick="rSize('5','rte-room')" style="font-size:14px">L</button><span class="rte-sep"></span><input type="color" value="#000000" title="Text colour" onchange="rColor(this.value,'rte-room')" style="width:22px;height:22px;border:1px solid #ccc;border-radius:3px;cursor:pointer;padding:1px"></div>
+<div class="rte-field" id="rte-room" contenteditable="true" data-placeholder="Room / with note"></div>
+<div style="font-size:10px;font-weight:600;color:#555;margin:9px 0 3px">Students</div>
+<div class="rte-toolbar"><button type="button" onclick="rFmt('bold','rte-students')"><b>B</b></button><button type="button" onclick="rFmt('italic','rte-students')"><i>I</i></button><button type="button" onclick="rFmt('underline','rte-students')"><u>U</u></button><span class="rte-sep"></span><button type="button" onclick="rSize('1','rte-students')" style="font-size:9px">S</button><button type="button" onclick="rSize('3','rte-students')" style="font-size:11px">M</button><button type="button" onclick="rSize('5','rte-students')" style="font-size:14px">L</button><span class="rte-sep"></span><input type="color" value="#000000" title="Text colour" onchange="rColor(this.value,'rte-students')" style="width:22px;height:22px;border:1px solid #ccc;border-radius:3px;cursor:pointer;padding:1px"></div>
+<div class="rte-field rte-tall" id="rte-students" contenteditable="true" data-placeholder="Student names (paste from spreadsheet)"></div>
+<div style="margin-top:13px;padding-top:11px;border-top:1px solid #e5e7eb">
+<div style="font-size:10px;font-weight:700;color:#555;margin-bottom:7px;font-family:system-ui">🎨 Block colour <span style="font-weight:400;color:#9ca3af">— Default unless you need to change it</span></div>
+<div style="display:flex;gap:5px;flex-wrap:wrap" id="blkColPicker">
+<button class="blk-col-btn" data-col="" onclick="pickBlkCol(this)" style="background:#e5e7eb;color:#555;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">Default</button>
+<button class="blk-col-btn" data-col="green" onclick="pickBlkCol(this)" style="background:#4CAF50;color:#fff;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">🟢 Green</button>
+<button class="blk-col-btn" data-col="blue" onclick="pickBlkCol(this)" style="background:#2196F3;color:#fff;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">🔵 Blue</button>
+<button class="blk-col-btn" data-col="yellow" onclick="pickBlkCol(this)" style="background:#FFC107;color:#333;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">🟡 Yellow</button>
+<button class="blk-col-btn" data-col="red" onclick="pickBlkCol(this)" style="background:#F44336;color:#fff;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">🔴 Red</button>
+<button class="blk-col-btn" data-col="purple" onclick="pickBlkCol(this)" style="background:#7B52AB;color:#fff;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">🟣 Purple</button>
+<button class="blk-col-btn" data-col="grey" onclick="pickBlkCol(this)" style="background:#9ca3af;color:#fff;border:2px solid transparent;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:system-ui;font-weight:600">⬜ Grey out</button>
+</div></div><div id="copyGrpInfo" style="display:none;font-size:10px;color:#0369a1;font-family:system-ui;margin-top:9px;padding:5px 9px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:5px"></div>
+<div class="modal-btns">
+  <button class="btn danger" onclick="clearBlock()">Clear</button>
+  <button class="btn" onclick="closeModal('blockModal')">Cancel</button>
+  <button class="btn" id="copyGrpBtn" onclick="copyToGroup()" style="display:none;background:#0369a1;color:#fff;border-color:#0369a1">📋 Copy to all</button>
+  <button class="btn primary" onclick="saveBlock()">Save</button>
+</div></div></div>
+<div id="coverModal" class="modal-overlay" style="display:none"><div class="modal"><h3>📌 Assign cover ILA</h3><div class="sub" id="coverModalSub"></div><label>Covering ILA</label><select id="coverModalILA" style="width:100%"></select><div class="modal-btns"><button class="btn" onclick="closeModal('coverModal')">Cancel</button><button class="btn teal" onclick="saveCoverFromModal()">📌 Assign</button></div></div></div>
+<div id="studentModal" class="modal-overlay" style="display:none"><div class="modal"><h3 id="studentModalTitle">Edit block</h3><div class="sub" id="studentModalSub"></div><label>Programme / class</label><input type="text" id="sMProg"><label>Room / location</label><input type="text" id="sMRoom"><label>ILA assigned</label><select id="sMILA" style="width:100%"></select><label>Reliever / extra support</label><input type="text" id="sMReliever"><label>Note</label><input type="text" id="sMNote"><label>Slot type</label><select id="sMType" style="width:100%"><option value="normal">Normal class</option><option value="noschool">No school</option><option value="leave">Leave school</option><option value="other">Other / no ILA needed</option></select><div class="modal-btns"><button class="btn danger" onclick="clearStudentSlot()">Clear</button><button class="btn" onclick="closeModal('studentModal')">Cancel</button><button class="btn primary" onclick="saveStudentSlot()">Save</button></div></div></div>
+<div id="gabModal" class="modal-overlay" style="display:none"><div class="modal"><h3 id="gabModalTitle">Edit Gabrielle's block</h3><div class="sub" id="gabModalSub"></div><label>Class / activity</label><input type="text" id="gMProg"><label>Room / location</label><input type="text" id="gMRoom"><label>Student supported</label><input type="text" id="gMStudent"><label>Note</label><input type="text" id="gMNote"><label>Slot type</label><select id="gMType" style="width:100%"><option value="normal">Active (coloured block)</option><option value="empty">Not in school (grey)</option></select><div class="modal-btns"><button class="btn danger" onclick="clearGabSlot()">Clear slot</button><button class="btn" onclick="closeModal('gabModal')">Cancel</button><button class="btn primary" onclick="saveGabSlot()">Save</button></div></div></div>
+<div id="ilsModal" class="modal-overlay" style="display:none"><div class="modal"><h3 id="ilsModalTitle">Edit IL Space block</h3><div class="sub" id="ilsModalSub"></div><label>Initials (e.g. FKA, JAH, LSP)</label><input type="text" id="ilsMName" placeholder="e.g. FKA"><label>Note (optional)</label><input type="text" id="ilsMNote"><div class="modal-btns"><button class="btn danger" onclick="clearIlsSlot()">Clear slot</button><button class="btn" onclick="closeModal('ilsModal')">Cancel</button><button class="btn primary" onclick="saveIlsSlot()">Save</button></div></div></div>
+<div id="msgModal" class="modal-overlay" style="display:none"><div class="modal"><h3 id="msgModalTitle">✉️ Message</h3><div class="sub" id="msgModalSub"></div><label>Message (only this person sees it)</label><textarea id="msgModalText" placeholder="Type your message..."></textarea><div class="modal-btns"><button class="btn danger" onclick="clearPersonalMsg()">Clear</button><button class="btn" onclick="closeModal('msgModal')">Cancel</button><button class="btn primary" style="background:#d97706;border-color:#d97706" onclick="savePersonalMsg()">✉️ Save</button></div></div></div>
+
+<div id="view-allstudents" style="display:none">
+<div style="font-family:system-ui;font-size:12px;font-weight:800;color:#1F3864;margin-bottom:7px">👥 All Students — Line support register</div>
+<p style="font-size:10px;color:#555;font-family:system-ui;margin-bottom:11px">Register every student who may need ILA support. Red = not listed in any block for their line this week.</p>
+<div id="uncovSummary"></div>
+<div id="addStudWrap" style="display:none"><div style="background:#f8faff;border:1.5px solid #b5c5e0;border-radius:7px;padding:11px;margin-bottom:9px;font-family:system-ui">
+<div style="font-size:11px;font-weight:700;color:#1F3864;margin-bottom:7px">+ Add student to line</div>
+<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end">
+<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:600;color:#555">Line</label><select id="newStudLine" style="min-width:130px;border:1px solid #ccc;border-radius:4px;padding:5px 7px;font-size:11px"><option value="green">🟢 Green — Line 3</option><option value="blue">🔵 Blue — Line 1&amp;2</option><option value="yellow">🟡 Yellow — Line 5</option><option value="red">🔴 Red — Line 4</option></select></div>
+<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:180px"><label style="font-size:10px;font-weight:600;color:#555">Name(s) — paste from spreadsheet, one per line</label><textarea id="newStudNames" rows="3" style="width:100%;border:1px solid #ccc;border-radius:4px;padding:5px 7px;font-size:11px;resize:vertical;font-family:system-ui" placeholder="Paste or type names&#10;One per line or comma separated"></textarea></div>
+<button class="btn primary" onclick="addLineStudents()" style="align-self:flex-end">+ Add</button>
+</div></div></div>
+<div id="lineSections"></div>
+</div>
+<script>
+var colorOverrides={};
+var lineStudents={green:[],blue:[],yellow:[],red:[]};
+var draftState=null,draftData=null,viewingDraft=false;
+
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const DK=['Mon','Tue','Wed','Thu','Fri'];
+const BCLS={Mon:{b1:'Mon-b1',b2:'Mon-b2',b3:'Mon-b3'},Tue:{b1:'Tue-b1',b2:'Tue-b2',b3:'Tue-b3'},Wed:{b1:'Wed-b1',b2:'Wed-b2',b3:'Wed-b3'},Thu:{b1:'Thu-b1',b2:'Thu-b2',b3:'Thu-b3'},Fri:{b1:'Fri-b1',b2:'Fri-b2',b3:'Fri-b3'}};
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const NZ_PH=[{name:'Wellington Anniversary',date:'2026-01-19'},{name:'Waitangi Day',date:'2026-02-06'},{name:'Good Friday',date:'2026-04-03'},{name:'Easter Monday',date:'2026-04-06'},{name:'Anzac Day',date:'2026-04-25'},{name:"King's Birthday",date:'2026-06-01'},{name:'Matariki',date:'2026-06-26'},{name:'Labour Day',date:'2026-10-26'}];
+const MSG_EDITORS=['Fleur Karasawa','Mariette Stoop'];
+const ILS_EDITORS=['Fleur Karasawa','Mariette Stoop'];
+const LAST_RESORT=[{name:'Fleur Karasawa',initials:'FK',role:'Team Leader'},{name:'Mariette Stoop',initials:'MS',role:'Kobe backup'}];
+let staff=[],keyStudents=[],leaveBookings=[],studentAbsences=[],coverAssignments=[],publicHolidays=[],archiveList=[];
+let messages={allStaff:{text:'',sentBy:'',sentAt:''},personal:{}};
+let birthdays={},ilSpaceRoster={},danielSchedule={},calebSchedule={},gabrielleSchedule={};
+let currentUser='',isAdmin=false,adminPin='9550',selectedLoginName='';
+let selectedStaff='',currentView='staff',editMode=false;
+let absentStaff=new Set();
+let leaveIdCtr=10,absIdCtr=10,coverIdCtr=1,phIdCtr=1;
+let currentEditCell=null,currentStudentEdit=null,currentGabEdit=null,currentIlsEdit=null,msgEditingName=null;
+let selectedArchiveId=null,historyStaffSelected='',studentFilter='';
+
+function persist(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function loadLocal(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function showSaved(){const el=document.getElementById('saveIndicator');el.style.display='inline-block';setTimeout(()=>el.style.display='none',1800);}
+function autoSave(){persist('staff',staff);persist('keyStudents',keyStudents);persist('leaveBookings',leaveBookings);persist('studentAbsences',studentAbsences);persist('coverAssignments',coverAssignments);persist('publicHolidays',publicHolidays);persist('messages',messages);persist('birthdays',birthdays);persist('ilSpaceRoster',ilSpaceRoster);persist('danielSchedule',danielSchedule);persist('calebSchedule',calebSchedule);persist('gabrielleSchedule',gabrielleSchedule);persist('archiveList',archiveList);persist('adminPin',adminPin);persist('weekMeta',{weekStart:document.getElementById('weekStart').value,termNum:document.getElementById('termNum').value,weekNum:document.getElementById('weekNum').value});showSaved();}
+function esc(s){return(s||'').replace(/'/g,"\\'")}
+function cellCls(dk,bk,grey){return grey?'blk-absent':BCLS[dk]?.[bk]||'blk-break';}
+function highlightRoom(r){if(!r)return'';r=r.replace(/\bwith\s+([A-Z][a-zA-Z\u00C0-\u024F']+(?:\s+[A-Z][a-zA-Z\u00C0-\u024F']+)?)/gi,(m,n)=>`with <span class="with-name">👤 ${n}</span>`);r=r.replace(/\b(Back\s*up|Backup):\s*([A-Z][a-zA-Z\u00C0-\u024F']+(?:\s+[A-Z][a-zA-Z\u00C0-\u024F']+)?)/gi,(m,l,n)=>`${l}: <span class="with-name">👤 ${n}</span>`);return r;}
+function highlightStudents(raw){if(!raw)return'';return raw.split(/,\s*/).map(n=>{const t=n.trim();if(!t)return'';const lc=t.toLowerCase();const hi=['kobe','wackrow','ritvik','fenn','riley','caleb','walker','andrew','daniel','batten','hannah','mullins'].some(x=>lc.includes(x));const su=['bajwa','simran','mahdia','hakimi','mariam','schonberger','skyla','kharsa','yazan','khalaf','bokilo','rina','alsaloum','trevathan','larry','wilson','tangaroa','cooper','lucas'].some(x=>lc.includes(x));return hi?`<span class="ks-high">${t}</span>`:su?`<span class="ks-support">${t}</span>`:`<span class="ks-other">${t}</span>`;}).join('<span class="ks-other">, </span>');}
+function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+function typeName(t){return{sick:'Sick leave',annual:'Annual leave',professional:'Prof. development',other:'Other'}[t]||t;}
+function typeClass(t){return{sick:'l-sick',annual:'l-annual',professional:'l-professional',other:'l-other'}[t]||'l-other';}
+function reasonLabel(r){return{travel:'Travel / overseas',medical:'Medical / appointment',family:'Family reason',other:'Other'}[r]||r;}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function getWeekDates(){const start=new Date(document.getElementById('weekStart').value);const d={};DK.forEach((dk,i)=>{const x=new Date(start);x.setDate(start.getDate()+i);d[dk]=x;});return d;}
+function bookingStatus(from,to){const wS=new Date(document.getElementById('weekStart').value);const wE=new Date(document.getElementById('weekEnd').value);wE.setHours(23,59,59,999);const f=new Date(from),t=new Date(to);t.setHours(23,59,59,999);if(f<=wE&&t>=wS)return'active';if(f>wE)return'upcoming';return'past';}
+function leaveActiveForDay(name,dk){const wd=getWeekDates();const dd=wd[dk];if(!dd)return false;return leaveBookings.some(l=>{if(l.staff!==name)return false;const f=new Date(l.from),t=new Date(l.to);t.setHours(23,59,59,999);const d=new Date(dd);d.setHours(12,0,0,0);return d>=f&&d<=t;});}
+function staffHasLeaveThisWeek(n){return DK.some(dk=>leaveActiveForDay(n,dk));}
+function studentAbsActiveThisWeek(n){return studentAbsences.some(a=>a.student===n&&bookingStatus(a.from,a.to)==='active');}
+function getStudentAbsThisWeek(n){return studentAbsences.filter(a=>a.student===n&&bookingStatus(a.from,a.to)==='active');}
+function isNotWorking(n,dk,bk){var s=staff.find(function(x){return x.name===n;});if(!s||!s.hours[dk])return true;if(bk&&s.offBlocks&&s.offBlocks[dk]&&s.offBlocks[dk].indexOf(bk)>=0)return true;return false;}
+function isAbsent(n){return absentStaff.has(n)||staffHasLeaveThisWeek(n);}
+function isAbsentDay(n,dk){return absentStaff.has(n)||isNotWorking(n,dk)||leaveActiveForDay(n,dk);}
+function phDayKey(dateStr){const wd=getWeekDates();const d=new Date(dateStr);d.setHours(12,0,0,0);for(const dk of DK){const w=new Date(wd[dk]);w.setHours(12,0,0,0);if(d.toDateString()===w.toDateString())return dk;}return null;}
+function getActivePHDays(){const s=new Set();publicHolidays.forEach(ph=>{const dk=phDayKey(ph.date);if(dk)s.add(dk);});return s;}
+function getPHName(dk){const wd=getWeekDates();const d=new Date(wd[dk]);d.setHours(12,0,0,0);for(const ph of publicHolidays){const p=new Date(ph.date);p.setHours(12,0,0,0);if(p.toDateString()===d.toDateString())return ph.name;}return'Public Holiday';}
+function phStatus(dateStr){const ws=new Date(document.getElementById('weekStart').value);ws.setHours(0,0,0,0);const we=new Date(document.getElementById('weekEnd').value);we.setHours(23,59,59,999);const d=new Date(dateStr);d.setHours(12,0,0,0);if(d>=ws&&d<=we)return'active';if(d>we)return'upcoming';return'past';}
+function getBirthdayWeekStaff(){const today=new Date();const dow=today.getDay();const mon=new Date(today);mon.setDate(today.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(23,59,59,999);const res=[];Object.entries(birthdays).forEach(([name,{day,month}])=>{const bday=new Date(today.getFullYear(),month-1,day);if(bday>=mon&&bday<=sun)res.push({name,day,month});});return res;}
+function getUpcomingBdays(days=30){const today=new Date();today.setHours(0,0,0,0);const res=[];Object.entries(birthdays).forEach(([name,{day,month}])=>{let b=new Date(today.getFullYear(),month-1,day);if(b<today)b=new Date(today.getFullYear()+1,month-1,day);const diff=Math.ceil((b-today)/86400000);if(diff<=days)res.push({name,day,month,diff});});return res.sort((a,b)=>a.diff-b.diff);}
+function initLogin(){const names=DEFAULT_STAFF.map(s=>s.name).sort((a,b)=>a.split(' ').pop().localeCompare(b.split(' ').pop()));document.getElementById('nameGrid').innerHTML=names.map(n=>`<button class="name-btn" id="nb_${n.replace(/[^a-z]/gi,'_')}" onclick="selectName('${esc(n)}')">${n}</button>`).join('');}
+function selectName(n){selectedLoginName=n;document.querySelectorAll('.name-btn').forEach(b=>b.classList.remove('selected'));const el=document.getElementById('nb_'+n.replace(/[^a-z]/gi,'_'));if(el)el.classList.add('selected');}
+function loginAsStaff(){if(!selectedLoginName){alert('Please click your name first.');return;}currentUser=selectedLoginName;isAdmin=false;launchApp();}
+function adminLogin(){const pin=document.getElementById('pinInput').value;if(pin===adminPin){currentUser=selectedLoginName||'Admin';isAdmin=true;launchApp();}else{document.getElementById('pinError').style.display='block';document.getElementById('pinInput').value='';}}
+function logout(){currentUser='';isAdmin=false;selectedLoginName='';document.getElementById('pinInput').value='';document.getElementById('pinError').style.display='none';document.querySelectorAll('.name-btn').forEach(b=>b.classList.remove('selected'));document.getElementById('loginScreen').style.display='flex';document.getElementById('mainApp').style.display='none';}
+function changePin(){const np=document.getElementById('newPinInput').value,cp=document.getElementById('confirmPinInput').value;if(np.length!==4||!/^\d{4}$/.test(np)){alert('PIN must be 4 digits.');return;}if(np!==cp){alert('PINs do not match.');return;}adminPin=np;autoSave();alert('PIN updated.');}
+function launchApp(){document.getElementById('loginScreen').style.display='none';document.getElementById('mainApp').style.display='block';if(isAdmin){document.getElementById('adminTools').style.display='flex';document.getElementById('adminTabs').style.display='flex';document.getElementById('staffTabs').style.display='none';document.getElementById('adminWeekEdit').style.display='inline';document.getElementById('weekStart').removeAttribute('readonly');document.getElementById('userBadge').innerHTML=`<span class="user-badge admin">🔐 Admin — ${currentUser.split(' ')[0]}</span>`;}else{document.getElementById('adminTools').style.display='none';document.getElementById('adminTabs').style.display='none';document.getElementById('staffTabs').style.display='flex';document.getElementById('adminWeekEdit').style.display='none';document.getElementById('weekStart').setAttribute('readonly','readonly');document.getElementById('userBadge').innerHTML=`<span class="user-badge staff">👤 ${currentUser}</span>`;if(staff.find(s=>s.name===currentUser))selectedStaff=currentUser;}setView('staff');renderAll();renderBanners();if(typeof updateDraftUI==='function')updateDraftUI();}
+function toggleTermWeekPanel(){const p=document.getElementById('termWeekPanel');p.style.display=(p.style.display==='none'||p.style.display==='')?'flex':'none';}
+function onWeekChange(){if(!isAdmin)return;const s=new Date(document.getElementById('weekStart').value);const e=new Date(s);e.setDate(s.getDate()+4);document.getElementById('weekEnd').value=e.toISOString().split('T')[0];updateWeekLabel();autoSave();renderAll();}
+function updateWeekLabel(){const t=document.getElementById('termNum').value,w=document.getElementById('weekNum').value;document.getElementById('weekLabel').textContent=`Term ${t} — Week ${w}${isAdmin?' ✏️':''}`;const cd=document.getElementById('currentWeekDisplay');if(cd)cd.textContent=document.getElementById('weekStart').value+' to '+document.getElementById('weekEnd').value;const pd=document.getElementById('phWeekDisplay');if(pd)pd.textContent=document.getElementById('weekStart').value+' to '+document.getElementById('weekEnd').value;}
+function renderBanners(){const activePH=getActivePHDays();const phEl=document.getElementById('phActiveBanner');if(activePH.size){const names=[...activePH].map(dk=>`${DAYS[DK.indexOf(dk)]} — ${getPHName(dk)}`).join(', ');phEl.innerHTML=`<div class="ph-banner">🏫 <strong>Public holiday this week:</strong> ${names} — automatically greyed out.</div>`;}else phEl.innerHTML='';const allEl=document.getElementById('msgAllBanner');const am=messages.allStaff;if(am?.text){allEl.innerHTML=`<div class="msg-all-banner"><span style="font-size:22px">📢</span><div><div style="font-size:12px;font-weight:800;color:#dc2626;margin-bottom:3px">Message to all ILAs</div><div style="font-size:13px;font-weight:500;white-space:pre-wrap">${am.text}</div><div style="font-size:10px;color:#9ca3af;margin-top:4px">From ${am.sentBy||'Admin'} · ${am.sentAt||''}</div></div></div>`;}else allEl.innerHTML='';const perEl=document.getElementById('msgPersonalBanner');if(!isAdmin){const pm=messages.personal?.[currentUser];if(pm?.text){perEl.innerHTML=`<div class="msg-personal-banner"><span style="font-size:22px">✉️</span><div><div style="font-size:12px;font-weight:800;color:#b45309;margin-bottom:3px">Message for you — ${currentUser.split(' ')[0]}</div><div style="font-size:13px;font-weight:500;white-space:pre-wrap">${pm.text}</div><div style="font-size:10px;color:#9ca3af;margin-top:4px">From ${pm.sentBy||'Admin'} · ${pm.sentAt||''}</div></div></div>`;}else perEl.innerHTML='';}else perEl.innerHTML='';const bdayEl=document.getElementById('bdayBanner');if(isAdmin||MSG_EDITORS.includes(currentUser)){const tw=getBirthdayWeekStaff();if(tw.length){const names=tw.map(b=>`🎂 ${b.name} (${ordinal(b.day)} ${MONTHS[b.month-1]})`).join('<br>');bdayEl.innerHTML=`<div class="bday-banner"><span style="font-size:28px">🎂</span><div><div style="font-size:13px;font-weight:800;color:#78350f;margin-bottom:4px">🎉 Birthday this week!</div><div style="font-size:14px;font-weight:600;line-height:1.6">${names}</div></div></div>`;}else bdayEl.innerHTML='';}else bdayEl.innerHTML='';}
+const ALL_VIEWS=['staff','messages','students','kobe','daniel','caleb','gabrielle','ilspace','leave','ph','studentabs','coverage','covers','birthdays','history','editpanel','allstudents'];
+function setView(v){currentView=v;ALL_VIEWS.forEach(id=>{const el=document.getElementById('view-'+id);if(el)el.style.display=v===id?'block':'none';});['tab-','stab-'].forEach(pfx=>{const el=document.getElementById(pfx+v);if(el){document.querySelectorAll(`[id^="${pfx}"]`).forEach(t=>t.classList.remove('active'));el.classList.add('active');}});if(v==='staff')renderTimetable();else if(v==='messages')renderMessagesView();else if(v==='students')renderStudents();else if(v==='kobe')renderKobe();else if(v==='daniel')renderDaniel();else if(v==='caleb')renderCaleb();else if(v==='gabrielle')renderGabrielle();else if(v==='ilspace')renderILSpace();else if(v==='leave'){refreshSelects();renderLeaveList();}else if(v==='ph')renderPHView();else if(v==='studentabs'){refreshSelects();renderStudentAbsList();}else if(v==='coverage')renderCoverage();else if(v==='covers'){refreshSelects();renderCoverList();}else if(v==='birthdays')renderBirthdayView();else if(v==='history')renderHistory();else if(v==='editpanel'){refreshSelects();renderStudentEditList();}else if(v==='allstudents'){if(typeof renderAllStudents==='function')renderAllStudents();}}
+function renderAll(){renderStaffGrid();renderTimetable();if(isAdmin)updateCount();renderBanners();const rv=currentView;if(rv==='students')renderStudents();else if(rv==='kobe')renderKobe();else if(rv==='daniel')renderDaniel();else if(rv==='caleb')renderCaleb();else if(rv==='gabrielle')renderGabrielle();else if(rv==='ilspace')renderILSpace();else if(rv==='leave')renderLeaveList();else if(rv==='ph')renderPHView();else if(rv==='studentabs')renderStudentAbsList();else if(rv==='coverage')renderCoverage();else if(rv==='covers')renderCoverList();else if(rv==='messages')renderMessagesView();else if(rv==='birthdays')renderBirthdayView();else if(rv==='history')renderHistory();else if(rv==='editpanel'){refreshSelects();renderStudentEditList();}}
+function renderStaffGrid(){if(!selectedStaff&&staff.length)selectedStaff=staff[0].name;document.getElementById('staffGrid').innerHTML=staff.map(s=>{const ol=staffHasLeaveThisWeek(s.name),ab=absentStaff.has(s.name),sel=s.name===selectedStaff;const hasMsg=!!(messages.personal?.[s.name]?.text);return`<div class="staff-chip${sel?' selected':''}${ab?' absent-chip':ol?' on-leave':''}${hasMsg?' has-msg':''}" onclick="selectStaff('${esc(s.name)}')">${s.name.split(' ')[0]}${ol&&!ab?' 📅':''}${ab?' ✕':''}${hasMsg?' ✉️':''}</div>`;}).join('');}
+function selectStaff(n){selectedStaff=n;renderStaffGrid();renderTimetable();renderBanners();}
+function renderTimetable(){const s=staff.find(x=>x.name===selectedStaff);if(!s)return;const manAb=absentStaff.has(s.name),ol=staffHasLeaveThisWeek(s.name);const al=leaveBookings.filter(l=>l.staff===s.name&&bookingStatus(l.from,l.to)==='active');const activePH=getActivePHDays();const banner=document.getElementById('absentBanner'),bt=document.getElementById('absentBannerText');if(manAb){banner.style.display='flex';bt.innerHTML=`${s.name} is marked absent.${isAdmin?` <button class="btn" style="font-size:11px;padding:2px 7px;margin-left:6px" onclick="setView('covers')">🔄 Cover</button>`:''}`;}else if(ol&&al.length){banner.style.display='flex';bt.innerHTML=`${s.name} on leave: ${al.map(l=>typeName(l.type)+(l.note?' — '+l.note:'')).join('; ')}${isAdmin?` <button class="btn" style="font-size:11px;padding:2px 7px;margin-left:6px" onclick="setView('covers')">🔄 Cover</button>`:''}`;}else banner.style.display='none';const pm=messages.personal?.[s.name];if(isAdmin&&pm?.text){document.getElementById('msgPersonalBanner').innerHTML=`<div class="msg-personal-banner"><span style="font-size:22px">✉️</span><div style="flex:1"><div style="font-size:12px;font-weight:800;color:#b45309;margin-bottom:3px">Active message for ${s.name.split(' ')[0]}</div><div style="font-size:13px;white-space:pre-wrap">${pm.text}</div><div style="font-size:10px;color:#9ca3af;margin-top:3px">From ${pm.sentBy||'Admin'} · ${pm.sentAt||''} · <button onclick="openMsgModal('${esc(s.name)}')" style="background:none;border:none;color:#1d4ed8;cursor:pointer;font-size:10px;text-decoration:underline">Edit</button></div></div></div>`;}
+let html=`<table class="tt" style="margin-bottom:10px"><colgroup><col style="width:78px">${DK.map(()=>'<col>').join('')}</colgroup><thead><tr class="c-namerow"><th colspan="6" style="text-align:left;padding:5px 8px;font-size:13px;font-weight:800">${s.name.toUpperCase()}${isAdmin&&editMode?' <span style="font-size:10px;font-weight:400;opacity:.8">— click block to edit</span>':''}</th></tr><tr class="c-header"><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr><tr class="blk-hours"><td><div class="ci-break" style="font-size:9px;font-weight:700">Hours</div></td>${DK.map(dk=>{const isPH=activePH.has(dk);const grey=isAbsentDay(s.name,dk)||manAb;const lv=leaveActiveForDay(s.name,dk);return`<td class="${isPH?'blk-ph':grey?'blk-absent':'blk-hours'}"><div class="ci-break">${isPH?getPHName(dk):lv?'On leave':s.hours[dk]||''}</div></td>`;}).join('')}</tr><tr class="blk-hours"><td><div class="ci-break" style="font-size:9px;font-weight:700">WH</div></td>${DK.map(dk=>{const isPH=activePH.has(dk);const grey=isAbsentDay(s.name,dk)||manAb;return`<td class="${isPH?'blk-ph':grey?'blk-absent':'blk-hours'}"><div class="ci-break" style="font-weight:600">${isPH?'🏫':grey?'':s.wh[dk]||''}</div></td>`;}).join('')}</tr></thead><tbody>`;
+const blocks=[{key:'b1',label:'Block 1',time:'9.30–11.00'},{key:'interval',label:'Interval',time:'11.00–11.30',isBreak:true},{key:'b2',label:'Block 2',time:'11.30–1.00'},{key:'lunch',label:'Lunch',time:'1.00–1.45',isBreak:true},{key:'b3',label:'Block 3',time:'1.45–3.15'}];
+for(const blk of blocks){html+=`<tr><td class="blk-break"><div class="ci-label"><strong>${blk.label}</strong><span style="font-weight:400;font-size:9px">${blk.time}</span></div></td>`;for(const dk of DK){const isPH=activePH.has(dk);if(blk.isBreak){const grey=(isAbsentDay(s.name,dk)||manAb)&&!isPH;const lbl=blk.key==='interval'?'BREAK':'LUNCH';html+=`<td class="${isPH?'blk-ph':grey?'blk-absent':'blk-break'}"><div class="ci-break">${isPH?'🏫 PH':grey?'':lbl}</div></td>`;continue;}if(isPH){html+=`<td class="blk-ph"><div class="ci"><div class="prog">🏫 ${getPHName(dk)}</div></div></td>`;continue;}const cell=s.schedule?.[dk]?.[blk.key]||{};const nw=isNotWorking(s.name,dk,blk.key),lv=leaveActiveForDay(s.name,dk);const grey=manAb||nw||lv;const _ovk=ovKey(s.name,dk,blk.key);const _ovc=colorOverrides[_ovk]||null;const _isOvd=!!_ovc&&_ovc!=='grey';const cls=_ovc?getOvCls(_ovc,dk):cellCls(dk,blk.key,grey&&!_isOvd);const myCoverSlots=coversForWeek().filter(c=>c.coveringILA===s.name&&c.day===dk&&c.block===blk.key);const blockCoveredBy=coversForWeek().filter(c=>c.absentStaff===s.name&&c.day===dk&&c.block===blk.key);html+=`<td class="${cls}"><div class="ci${isAdmin&&editMode?' editable':''}" ${isAdmin&&editMode?`onclick="openBlockEdit('${esc(s.name)}','${dk}','${blk.key}')"`:''}>`;if(grey&&!_isOvd){if(nw)html+=`<div style="font-size:8px;font-weight:700;color:#9ca3af;margin-bottom:2px">Not working</div>`;else if(lv){const lvr=leaveBookings.find(l=>l.staff===s.name&&bookingStatus(l.from,l.to)==='active');html+=`<div style="font-size:8px;font-weight:700;color:#9ca3af;margin-bottom:2px">${lvr?typeName(lvr.type):'On leave'}${lvr?.note?' — '+lvr.note:''}</div>`;}if(cell.prog)html+=`<div style="color:#9ca3af;font-size:9px;opacity:.85">${cell.prog.replace(/<[^>]+>/g,'')}</div>`;if(cell.room)html+=`<div style="font-size:8px;color:#9ca3af;opacity:.8">${cell.room.replace(/<[^>]+>/g,'')}</div>`;if(cell.students)html+=`<div style="font-size:8px;color:#9ca3af;opacity:.75">${cell.students.replace(/<[^>]+>/g,'')}</div>`;if(blockCoveredBy.length)html+=blockCoveredBy.map(c=>`<div style="margin-top:3px;background:rgba(13,148,136,.25);padding:2px 5px;border-radius:3px;font-size:8px;font-weight:700;color:#fff">✓ ${c.coveringILA.split(' ')[0]}</div>`).join('');if(isAdmin)html+=`<button class="cover-assign-btn" onclick="event.stopPropagation();openCoverModal('${esc(s.name)}','${dk}','${blk.key}')">📌</button>`;}else{if(cell.prog){html+=`<div class="prog">${cell.prog}</div>`;if(cell.room)html+=`<div class="room-text">${highlightRoom(cell.room)}</div>`;}if(cell.students)html+=`<div class="students-wrap">${highlightStudents(cell.students)}</div>`;if(!cell.prog&&isAdmin&&editMode)html+=`<div style="color:rgba(255,255,255,.3);font-size:9px;text-align:center;padding-top:20px">+ Add</div>`;if(myCoverSlots.length)html+=myCoverSlots.map(c=>`<div style="margin-top:3px;padding:3px 5px;background:rgba(0,0,0,.18);border-radius:3px;font-size:8px;border-left:2px solid #fff"><div style="font-weight:700;opacity:.9">📌 Covering ${c.absentStaff.split(' ')[0]}</div>${isAdmin?`<button style="font-size:7px;padding:1px 3px;background:rgba(220,38,38,.7);border:none;color:#fff;cursor:pointer;border-radius:2px;margin-top:1px" onclick="event.stopPropagation();removeCover(${c.id})">✕</button>`:''}</div>`).join('');}html+=`</div></td>`;}html+=`</tr>`;}
+html+=`</tbody></table>`;if(isAdmin){if(canEditMessages())html+=`<button class="btn" style="border-color:#d97706;color:#d97706;margin-right:6px" onclick="openMsgModal('${esc(s.name)}')">✉️ ${messages.personal?.[s.name]?.text?'Edit':'Add'} message for ${s.name.split(' ')[0]}</button>`;if(manAb)html+=`<button class="btn success" onclick="toggleAbsent('${esc(s.name)}')">✓ Mark present</button>`;else html+=`<button class="btn danger" onclick="toggleAbsent('${esc(s.name)}')">✕ Mark absent</button>`;}document.getElementById('timetableWrap').innerHTML=html;}
+function toggleEditMode(){if(!isAdmin)return;editMode=!editMode;const btn=document.getElementById('editModeBtn');btn.textContent=editMode?'✕ Exit edit':'✏️ Edit mode';btn.className='btn amber'+(editMode?' active':'');document.getElementById('editBanner').style.display=editMode?'flex':'none';renderAll();}
+function openBlockEdit(sn,dk,bk){
+  if(!editMode||!isAdmin)return;
+  currentEditCell={sn:sn,dk:dk,bk:bk};
+  var s=staff.find(function(x){return x.name===sn;});
+  var cell=(s&&s.schedule&&s.schedule[dk]&&s.schedule[dk][bk])||{};
+  document.getElementById('modalTitle').textContent='Edit: '+sn+' — '+dk+' Block '+bk.replace('b','');
+  rSet('rte-prog', cell.prog||'');
+  rSet('rte-room', cell.room||'');
+  rSet('rte-students', cell.students||'');
+  var curCol=colorOverrides[ovKey(sn,dk,bk)]||'';
+  document.querySelectorAll('.blk-col-btn').forEach(function(btn){
+    btn.classList.toggle('blk-col-picked', btn.getAttribute('data-col')===curCol);
+  });
+  // Show/hide copy-to-group button
+  var groupKey=dk+'-'+bk;
+  var grp=typeof COLOR_GROUPS!=='undefined'?COLOR_GROUPS[groupKey]:null;
+  var colName=typeof COLOR_NAMES!=='undefined'?COLOR_NAMES[groupKey]:'';
+  var copyBtn=document.getElementById('copyGrpBtn');
+  var copyInfo=document.getElementById('copyGrpInfo');
+  if(copyBtn&&grp&&grp.length>1&&colName){
+    copyBtn.style.display='inline-block';
+    copyBtn.textContent='📋 Copy to all '+colName+' blocks';
+    if(copyInfo){
+      var labels=grp.map(function(k){var p=k.split('-');return p[0]+' B'+p[1].replace('b','');});
+      copyInfo.textContent='This will copy to: '+labels.join(', ');
+      copyInfo.style.display='block';
+    }
+  } else {
+    if(copyBtn)copyBtn.style.display='none';
+    if(copyInfo)copyInfo.style.display='none';
+  }
+  document.getElementById('blockModal').style.display='flex';
+}
+function saveBlock(){
+  if(!currentEditCell||!isAdmin)return;
+  var sn=currentEditCell.sn,dk=currentEditCell.dk,bk=currentEditCell.bk;
+  var s=staff.find(function(x){return x.name===sn;});
+  if(!s.schedule[dk])s.schedule[dk]={};
+  s.schedule[dk][bk]={prog:rGet('rte-prog'),room:rGet('rte-room'),students:rGet('rte-students')};
+  var selBtn=document.querySelector('#blkColPicker .blk-col-btn.blk-col-picked');
+  var colVal=selBtn?selBtn.getAttribute('data-col'):'';
+  var ok=ovKey(sn,dk,bk);
+  if(colVal){colorOverrides[ok]=colVal;}else{delete colorOverrides[ok];}
+  saveColorOverrides();
+  closeModal('blockModal');autoSave();renderAll();
+}
+function clearBlock(){
+  if(!currentEditCell||!isAdmin)return;
+  var sn=currentEditCell.sn,dk=currentEditCell.dk,bk=currentEditCell.bk;
+  var s=staff.find(function(x){return x.name===sn;});
+  if(s&&s.schedule&&s.schedule[dk])s.schedule[dk][bk]={prog:'',room:'',students:''};
+  rSet('rte-prog','');rSet('rte-room','');rSet('rte-students','');
+  delete colorOverrides[ovKey(sn,dk,bk)];
+  saveColorOverrides();
+  closeModal('blockModal');autoSave();renderAll();
+}
+document.getElementById('blockModal').addEventListener('click',function(e){if(e.target===this)closeModal('blockModal');});
+function toggleAbsent(n){if(!isAdmin)return;absentStaff.has(n)?absentStaff.delete(n):absentStaff.add(n);renderAll();}
+function currentWeekKey(){return document.getElementById('weekStart').value;}
+function coversForWeek(){return coverAssignments.filter(c=>c.weekKey===currentWeekKey());}
+let pendingCoverCell=null;
+function openCoverModal(sn,dk,bk){if(!isAdmin)return;pendingCoverCell={sn,dk,bk};const s=staff.find(x=>x.name===sn);const cell=s?.schedule?.[dk]?.[bk]||{};document.getElementById('coverModalSub').innerHTML=`<strong>${sn}</strong> — ${dk} Block ${bk.replace('b','')}<br>${cell.prog||''}`;document.getElementById('coverModalILA').innerHTML=staff.filter(s=>s.name!==sn).map(s=>`<option value="${s.name}">${s.name}</option>`).join('');document.getElementById('coverModal').style.display='flex';}
+document.getElementById('coverModal').addEventListener('click',function(e){if(e.target===this)closeModal('coverModal');});
+function saveCoverFromModal(){if(!pendingCoverCell)return;const{sn,dk,bk}=pendingCoverCell;const n=document.getElementById('coverModalILA').value;if(!n)return;const s=staff.find(x=>x.name===sn);const cell=s?.schedule?.[dk]?.[bk]||{};coverAssignments=coverAssignments.filter(c=>!(c.weekKey===currentWeekKey()&&c.absentStaff===sn&&c.day===dk&&c.block===bk&&c.coveringILA===n));coverAssignments.push({id:coverIdCtr++,weekKey:currentWeekKey(),absentStaff:sn,day:dk,block:bk,coveringILA:n,prog:cell.prog||''});closeModal('coverModal');autoSave();renderAll();}
+function removeCover(id){coverAssignments=coverAssignments.filter(c=>c.id!==id);autoSave();renderAll();}
+function assignCover(){const sn=document.getElementById('coverAbsentStaff').value,dk=document.getElementById('coverDay').value,bk=document.getElementById('coverBlock').value,n=document.getElementById('coveringILA').value;if(!sn||!n||sn===n){alert('Check all fields.');return;}const s=staff.find(x=>x.name===sn);const cell=s?.schedule?.[dk]?.[bk]||{};coverAssignments=coverAssignments.filter(c=>!(c.weekKey===currentWeekKey()&&c.absentStaff===sn&&c.day===dk&&c.block===bk&&c.coveringILA===n));coverAssignments.push({id:coverIdCtr++,weekKey:currentWeekKey(),absentStaff:sn,day:dk,block:bk,coveringILA:n,prog:cell.prog||''});autoSave();renderAll();renderCoverList();alert(`${n.split(' ')[0]} assigned.`);}
+function renderCoverList(){const el=document.getElementById('coverList');if(!el)return;const active=coversForWeek();if(!active.length){el.innerHTML=`<div style="font-family:system-ui;font-size:12px;color:#555;padding:1rem 0">No cover assignments this week.</div>`;return;}const g={};active.forEach(c=>{if(!g[c.absentStaff])g[c.absentStaff]=[];g[c.absentStaff].push(c);});let html='';Object.entries(g).forEach(([absent,covers])=>{html+=`<div class="cover-summary-card"><div style="font-weight:700;font-size:12px;margin-bottom:6px">⬜ ${absent}</div>${covers.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:.5px solid #ccfbf1;flex-wrap:wrap"><span class="lbadge" style="background:#ccfbf1;color:#134e4a">${c.day} B${c.block.replace('b','')}</span><span style="font-weight:600;font-size:11px">${c.prog||'—'}</span><span style="color:#0d9488;font-weight:600;font-size:11px">→ ${c.coveringILA}</span><button class="del-btn" onclick="removeCover(${c.id})">✕</button></div>`).join('')}</div>`;});el.innerHTML=html;}
+function addLeave(){if(!isAdmin)return;const sn=document.getElementById('leaveStaff').value,f=document.getElementById('leaveFrom').value,t=document.getElementById('leaveTo').value,type=document.getElementById('leaveType').value,note=document.getElementById('leaveNote').value;if(!sn||!f||!t){alert('Fill in staff member and dates.');return;}if(new Date(f)>new Date(t)){alert('Start must be before end.');return;}leaveBookings.push({id:leaveIdCtr++,staff:sn,from:f,to:t,type,note});leaveBookings.sort((a,b)=>new Date(a.from)-new Date(b.from));['leaveFrom','leaveTo','leaveNote'].forEach(id=>document.getElementById(id).value='');autoSave();renderLeaveList();renderAll();}
+function deleteLeave(id){if(!isAdmin)return;leaveBookings=leaveBookings.filter(l=>l.id!==id);autoSave();renderLeaveList();renderAll();}
+function renderLeaveList(){const cd=document.getElementById('currentWeekDisplay');if(cd)cd.textContent=document.getElementById('weekStart').value+' to '+document.getElementById('weekEnd').value;const el=document.getElementById('leaveList');if(!el)return;const act=leaveBookings.filter(l=>bookingStatus(l.from,l.to)==='active');const up=leaveBookings.filter(l=>bookingStatus(l.from,l.to)==='upcoming');const past=leaveBookings.filter(l=>bookingStatus(l.from,l.to)==='past');let html='';if(act.length){html+=`<div class="group-label" style="color:#374151">⬜ Active this week</div>`;html+=act.map(l=>lRow(l,'active-now')).join('');}if(up.length){html+=`<div class="group-label" style="color:#1e40af">🔵 Upcoming</div>`;html+=up.map(l=>lRow(l,'upcoming')).join('');}if(past.length){html+=`<div class="group-label">Past</div>`;html+=past.map(l=>lRow(l,'past')).join('');}if(!html)html=`<div style="color:#888;font-size:12px;font-family:system-ui;padding:8px 0">No leave booked.</div>`;el.innerHTML=html;}
+function lRow(l,cls){const d=Math.round((new Date(l.to)-new Date(l.from))/86400000)+1;return`<div class="booking-entry ${cls}"><strong style="min-width:110px;font-size:12px">${l.staff}</strong><span class="lbadge ${typeClass(l.type)}">${typeName(l.type)}</span><span style="color:#555;font-size:11px">${l.from}${l.to!==l.from?' → '+l.to:''} (${d}d)</span>${l.note?`<span style="color:#888;font-size:11px;font-style:italic">${l.note}</span>`:''}<button class="del-btn" onclick="deleteLeave(${l.id})">✕</button></div>`;}
+function addPH(){if(!isAdmin)return;const name=document.getElementById('phName').value.trim(),date=document.getElementById('phDate').value;if(!name||!date){alert('Enter a name and date.');return;}const dow=new Date(date).getDay();if(dow===0||dow===6){alert('Falls on a weekend — use the observed date.');return;}publicHolidays.push({id:phIdCtr++,name,date});publicHolidays.sort((a,b)=>new Date(a.date)-new Date(b.date));document.getElementById('phName').value='';document.getElementById('phDate').value='';autoSave();renderAll();renderPHView();}
+function addNzPH(name,date){if(!isAdmin)return;if(publicHolidays.find(h=>h.date===date)){alert(`${name} already booked!`);return;}publicHolidays.push({id:phIdCtr++,name,date});publicHolidays.sort((a,b)=>new Date(a.date)-new Date(b.date));autoSave();renderAll();renderPHView();}
+function deletePH(id){if(!isAdmin)return;publicHolidays=publicHolidays.filter(h=>h.id!==id);autoSave();renderAll();renderPHView();}
+function renderPHView(){const pd=document.getElementById('phWeekDisplay');if(pd)pd.textContent=document.getElementById('weekStart').value+' to '+document.getElementById('weekEnd').value;const nzEl=document.getElementById('nzPhQuick');if(nzEl)nzEl.innerHTML=NZ_PH.map(ph=>{const already=publicHolidays.find(h=>h.date===ph.date);const d=new Date(ph.date);const label=d.toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'long',year:'numeric'});return`<div class="nz-ph-row"><span style="font-weight:700;min-width:180px;font-family:system-ui">${ph.name}</span><span style="color:#555;font-size:11px;font-family:system-ui">${label}</span>${already?`<span style="color:#166534;font-size:11px;margin-left:auto;font-family:system-ui">✓ Booked</span>`:`<button class="btn success" style="font-size:11px;padding:3px 9px;margin-left:auto" onclick="addNzPH('${esc(ph.name)}','${ph.date}')">+ Add</button>`}</div>`;}).join('');const el=document.getElementById('phList');if(!el)return;if(!publicHolidays.length){el.innerHTML=`<div style="color:#6b7280;font-family:system-ui;font-size:12px;padding:8px 0">No public holidays booked yet.</div>`;return;}const active=publicHolidays.filter(h=>phStatus(h.date)==='active');const upcoming=publicHolidays.filter(h=>phStatus(h.date)==='upcoming');const past=publicHolidays.filter(h=>phStatus(h.date)==='past');let html='';if(active.length){html+=`<div class="group-label" style="color:#5b21b6">🟣 Active this week</div>`;html+=active.map(h=>phRow(h,'ph-active')).join('');}if(upcoming.length){html+=`<div class="group-label" style="color:#1e40af">🔵 Upcoming</div>`;html+=upcoming.map(h=>phRow(h,'upcoming')).join('');}if(past.length){html+=`<div class="group-label">Past</div>`;html+=past.map(h=>phRow(h,'past')).join('');}el.innerHTML=html;}
+function phRow(h,cls){const d=new Date(h.date);const label=d.toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'});const st=phStatus(h.date);return`<div class="booking-entry ${cls}"><span style="font-size:16px">${st==='active'?'🏫':'🗓'}</span><div style="flex:1;font-family:system-ui"><div style="font-weight:700;font-size:12px">${h.name}</div><div style="font-size:11px;color:#555;margin-top:2px">${label}</div>${st==='active'?`<div style="font-size:11px;color:#5b21b6;font-weight:600;margin-top:2px">⚡ Auto-active this week</div>`:''}</div><span class="lbadge l-ph">${st==='active'?'Active':st==='upcoming'?'Upcoming':'Past'}</span><button class="del-btn" onclick="deletePH(${h.id})">✕</button></div>`;}
+function addStudentAbs(){if(!isAdmin)return;const student=document.getElementById('studentAbsName').value,f=document.getElementById('studentAbsFrom').value,t=document.getElementById('studentAbsTo').value,reason=document.getElementById('studentAbsReason').value,note=document.getElementById('studentAbsNote').value;if(!student||!f||!t){alert('Fill in student and dates.');return;}if(new Date(f)>new Date(t)){alert('Start must be before end.');return;}studentAbsences.push({id:absIdCtr++,student,from:f,to:t,reason,note});studentAbsences.sort((a,b)=>new Date(a.from)-new Date(b.from));['studentAbsFrom','studentAbsTo','studentAbsNote'].forEach(id=>document.getElementById(id).value='');autoSave();renderStudentAbsList();renderAll();}
+function deleteStudentAbs(id){if(!isAdmin)return;studentAbsences=studentAbsences.filter(a=>a.id!==id);autoSave();renderStudentAbsList();renderAll();}
+function renderStudentAbsList(){const el=document.getElementById('studentAbsList');if(!el)return;const act=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='active');const up=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='upcoming');const past=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='past');let html='';if(act.length){html+=`<div class="group-label" style="color:#831843">🎒 Away this week</div>`;html+=act.map(a=>saRow(a,'active-now')).join('');}if(up.length){html+=`<div class="group-label" style="color:#6d28d9">📌 Upcoming</div>`;html+=up.map(a=>saRow(a,'upcoming')).join('');}if(past.length){html+=`<div class="group-label">Past</div>`;html+=past.map(a=>saRow(a,'past')).join('');}if(!html)html=`<div style="color:#888;font-size:12px;font-family:system-ui;padding:8px 0">No student absences booked.</div>`;el.innerHTML=html;}
+function saRow(a,cls){const d=Math.round((new Date(a.to)-new Date(a.from))/86400000)+1;return`<div class="booking-entry ${cls}"><strong style="min-width:110px;font-size:12px">${a.student}</strong><span class="lbadge l-student">${reasonLabel(a.reason)}</span><span style="color:#555;font-size:11px">${a.from}${a.to!==a.from?' → '+a.to:''} (${d}d)</span>${a.note?`<span style="color:#888;font-size:11px;font-style:italic">${a.note}</span>`:''}<button class="del-btn" onclick="deleteStudentAbs(${a.id})">✕</button></div>`;}
+function canEditMessages(){return isAdmin||MSG_EDITORS.includes(currentUser);}
+function renderMessagesView(){const am=messages.allStaff||{};const display=document.getElementById('allMsgDisplay');const btn=document.getElementById('allMsgBtn');if(am.text){display.innerHTML=`<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:10px 14px;font-family:system-ui"><div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:4px">📢 CURRENT ALL-STAFF MESSAGE</div><div style="font-size:13px;white-space:pre-wrap;line-height:1.6">${am.text}</div><div style="font-size:10px;color:#9ca3af;margin-top:6px">Sent by ${am.sentBy||'Admin'} · ${am.sentAt||''}</div></div>`;}else{display.innerHTML=`<div style="font-family:system-ui;font-size:12px;color:#6b7280;padding:6px 0">No all-staff message active.</div>`;}const p=document.getElementById('personalMsgPanel'),m=document.getElementById('myMsgPanel');if(canEditMessages()){if(btn)btn.innerHTML=`<button class="btn primary" style="background:#ef4444;border-color:#ef4444" onclick="startAllMsg()">✏️ ${am.text?'Edit':'Write'} all-staff message</button>`;if(p)p.style.display='block';if(m)m.style.display='none';renderPersonalList();}else{if(btn)btn.innerHTML='';if(p)p.style.display='none';if(m)m.style.display='block';renderMyMessages();}}
+function startAllMsg(){document.getElementById('allMsgEditWrap').style.display='block';document.getElementById('allMsgInput').value=messages.allStaff?.text||'';document.getElementById('allMsgBtn').style.display='none';}
+function cancelAllMsg(){document.getElementById('allMsgEditWrap').style.display='none';document.getElementById('allMsgBtn').style.display='block';}
+function saveAllMsg(){const txt=document.getElementById('allMsgInput').value.trim();messages.allStaff={text:txt,sentBy:currentUser,sentAt:new Date().toLocaleString('en-NZ')};document.getElementById('allMsgEditWrap').style.display='none';document.getElementById('allMsgBtn').style.display='block';autoSave();renderMessagesView();renderBanners();renderStaffGrid();}
+function clearAllMsg(){messages.allStaff={text:'',sentBy:'',sentAt:''};document.getElementById('allMsgEditWrap').style.display='none';document.getElementById('allMsgBtn').style.display='block';autoSave();renderMessagesView();renderBanners();renderStaffGrid();}
+function renderPersonalList(){const el=document.getElementById('personalList');if(!el)return;let html='';staff.forEach(s=>{const pm=messages.personal?.[s.name]||{};const hasMsg=!!pm.text;html+=`<div class="msg-row"><div class="msg-name">${s.name}${hasMsg?'<span style="color:#ef4444;font-size:13px;margin-left:3px">●</span>':''}</div><div class="msg-text-box${hasMsg?'':' empty'}">${hasMsg?pm.text:'No message'}</div><button class="msg-edit-btn" onclick="openMsgModal('${esc(s.name)}')">✏️ ${hasMsg?'Edit':'Add'}</button>${hasMsg?`<button class="msg-clear-btn" onclick="quickClearPersonal('${esc(s.name)}')">✕</button>`:''}</div>`;});el.innerHTML=html||'<div style="color:#6b7280;font-size:12px">No staff found.</div>';}
+function renderMyMessages(){const el=document.getElementById('myMsgContent');if(!el)return;const pm=messages.personal?.[currentUser]||{};const am=messages.allStaff||{};let html='';if(!pm.text&&!am.text){html=`<div style="color:#6b7280;font-size:12px;font-family:system-ui">No messages for you right now.</div>`;}if(am.text)html+=`<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-family:system-ui"><div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:4px">📢 All-staff message</div><div style="font-size:13px;white-space:pre-wrap;line-height:1.6">${am.text}</div></div>`;if(pm.text)html+=`<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:10px 14px;font-family:system-ui"><div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:4px">✉️ Personal message for you</div><div style="font-size:13px;white-space:pre-wrap;line-height:1.6">${pm.text}</div></div>`;el.innerHTML=html;}
+function openMsgModal(name){if(!canEditMessages())return;msgEditingName=name;const pm=messages.personal?.[name]||{};document.getElementById('msgModalTitle').textContent=`✉️ Message for ${name}`;document.getElementById('msgModalSub').textContent=`Only ${name.split(' ')[0]} will see this when they log in`;document.getElementById('msgModalText').value=pm.text||'';document.getElementById('msgModal').style.display='flex';setTimeout(()=>document.getElementById('msgModalText').focus(),40);}
+document.getElementById('msgModal').addEventListener('click',function(e){if(e.target===this)closeModal('msgModal');});
+function savePersonalMsg(){if(!msgEditingName)return;const txt=document.getElementById('msgModalText').value.trim();if(!messages.personal)messages.personal={};messages.personal[msgEditingName]={text:txt,sentBy:currentUser,sentAt:new Date().toLocaleString('en-NZ')};closeModal('msgModal');autoSave();renderMessagesView();renderBanners();renderStaffGrid();}
+function clearPersonalMsg(){if(!msgEditingName)return;if(!messages.personal)messages.personal={};messages.personal[msgEditingName]={text:'',sentBy:'',sentAt:''};closeModal('msgModal');autoSave();renderMessagesView();renderBanners();renderStaffGrid();}
+function quickClearPersonal(name){if(!messages.personal)messages.personal={};messages.personal[name]={text:'',sentBy:'',sentAt:''};autoSave();renderMessagesView();renderBanners();renderStaffGrid();}
+function saveBirthday(){const name=document.getElementById('bdayStaff').value,day=parseInt(document.getElementById('bdayDay').value),month=parseInt(document.getElementById('bdayMonth').value);birthdays[name]={day,month};autoSave();renderBirthdayView();renderBanners();}
+function deleteBirthday(name){delete birthdays[name];autoSave();renderBirthdayView();renderBanners();}
+function renderBirthdayView(){const el=document.getElementById('bdayList');if(!el)return;const entries=Object.entries(birthdays).sort((a,b)=>a[1].month!==b[1].month?a[1].month-b[1].month:a[1].day-b[1].day);if(!entries.length){el.innerHTML=`<div style="color:#6b7280;font-size:12px;font-family:system-ui;padding:8px 0">No birthdays booked yet.</div>`;return;}const thisWeekNames=new Set(getBirthdayWeekStaff().map(b=>b.name));const upcomingNames=new Set(getUpcomingBdays(30).map(b=>b.name));let html='';entries.forEach(([name,{day,month}])=>{const tw=thisWeekNames.has(name),soon=upcomingNames.has(name)&&!tw;html+=`<div class="bday-entry${tw?' this-week':soon?' upcoming-bday':''}"><span style="font-size:18px">${tw?'🎂':'🗓'}</span><span style="font-weight:700;min-width:140px;font-family:system-ui;font-size:12px">${name}</span><span style="color:#555;font-size:12px;font-family:system-ui">${ordinal(day)} ${MONTHS[month-1]}</span>${tw?`<span class="lbadge" style="background:#fef3c7;color:#78350f;border:1px solid #f59e0b">🎉 This week!</span>`:soon?`<span class="lbadge" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">Coming up</span>`:''}<button class="del-btn" style="margin-left:auto" onclick="deleteBirthday('${esc(name)}')">✕</button></div>`;});el.innerHTML=html;}
+function initBirthdayForm(){document.getElementById('bdayDay').innerHTML=Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');document.getElementById('bdayMonth').innerHTML=MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');}
+const DEFAULT_ILS={Mon:{b1:{n:'',o:''},b2:{n:'',o:''},b3:{n:'',o:''},iv:{n:'FKA',o:''},ln:{n:'Jan\nLara',o:''}},Tue:{b1:{n:'',o:''},b2:{n:'',o:''},b3:{n:'',o:''},iv:{n:'JAH',o:''},ln:{n:'Lara\nFahimeh',o:''}},Wed:{b1:{n:'',o:''},b2:{n:'',o:''},b3:{n:'',o:''},iv:{n:'LSP',o:''},ln:{n:'JAH',o:''}},Thu:{b1:{n:'',o:''},b2:{n:'',o:''},b3:{n:'',o:''},iv:{n:'FKA',o:''},ln:{n:'Fahimeh\nJan',o:''}},Fri:{b1:{n:'',o:''},b2:{n:'',o:''},b3:{n:'',o:''},iv:{n:'FKA',o:''},ln:{n:'LSP',o:''}}};
+function canEditILS(){return isAdmin||ILS_EDITORS.includes(currentUser);}
+function openIlsModal(dk,slot){if(!canEditILS())return;currentIlsEdit={dk,slot};const c=ilSpaceRoster[dk]?.[slot]||{};const day=DAYS[DK.indexOf(dk)];const sl={b1:'Block 1',b2:'Block 2',b3:'Block 3',iv:'Interval',ln:'Lunch'}[slot]||slot;document.getElementById('ilsModalTitle').textContent=`Edit IL Space — ${day} ${sl}`;document.getElementById('ilsModalSub').textContent=`${day} · ${sl}`;document.getElementById('ilsMName').value=c.n||'';document.getElementById('ilsMNote').value=c.o||'';document.getElementById('ilsModal').style.display='flex';}
+document.getElementById('ilsModal').addEventListener('click',function(e){if(e.target===this)closeModal('ilsModal');});
+function saveIlsSlot(){if(!currentIlsEdit||!canEditILS())return;const{dk,slot}=currentIlsEdit;if(!ilSpaceRoster[dk])ilSpaceRoster[dk]={};ilSpaceRoster[dk][slot]={n:document.getElementById('ilsMName').value.trim(),o:document.getElementById('ilsMNote').value.trim()};closeModal('ilsModal');autoSave();renderILSpace();}
+function clearIlsSlot(){if(!currentIlsEdit||!canEditILS())return;const{dk,slot}=currentIlsEdit;if(!ilSpaceRoster[dk])ilSpaceRoster[dk]={};ilSpaceRoster[dk][slot]={n:'',o:''};closeModal('ilsModal');autoSave();renderILSpace();}
+function renderILSpace(){const canEdit=canEditILS();const activePH=getActivePHDays();document.getElementById('ilsEditHint').textContent=canEdit?'✏️ Click any cell to edit':'Read only — Fleur or Mariette can edit';const ROWS=[{k:'b1',l:'Block 1',t:'9.30–11.00',isB:true},{k:'iv',l:'Interval',t:'11.00–11.30',isB:false},{k:'b2',l:'Block 2',t:'11.30–1.00',isB:true},{k:'ln',l:'Lunch',t:'1.00–1.45',isB:false},{k:'b3',l:'Block 3',t:'1.45–3.15',isB:true}];let html=`<table class="tt" style="margin-bottom:10px"><colgroup><col style="width:76px">${DK.map(()=>'<col>').join('')}</colgroup><thead><tr class="c-namerow"><th colspan="6" style="text-align:left;padding:5px 8px;font-size:13px;font-weight:800">IL SPACE ROSTER 2026${canEdit?' <span style="font-size:10px;font-weight:400;opacity:.8">· click cell to edit</span>':''}</th></tr><tr style="background:#0369a1;color:#fff"><td><div class="ci-break" style="color:#fff">RSHS Hours</div></td>${DK.map(()=>`<td><div class="ci-break" style="color:#fff;font-weight:600">9.30–3.00pm</div></td>`).join('')}</tr><tr style="background:#f1f5f9"><td><div class="ci-break" style="font-weight:700">WH</div></td>${DK.map(dk=>`<td><div class="ci-break" style="font-weight:700">${dk==='Wed'?'Classes start 10am':'WH'}</div></td>`).join('')}</tr><tr class="c-header"><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;for(const row of ROWS){html+=`<tr><td class="${row.isB?'ils-info-bg':'ils-duty-bg'}"><div style="padding:5px 6px;min-height:${row.isB?80:36}px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center"><div style="font-weight:700;font-size:10px">${row.l}</div><div style="font-size:9px;color:#888">${row.t}</div></div></td>`;for(const dk of DK){const isPH=activePH.has(dk);const c=ilSpaceRoster[dk]?.[row.k]||{n:'',o:''};const nm=(c.n||'').trim(),nt=(c.o||'').trim();if(row.isB){const cls=BCLS[dk]?.[row.k]||'';html+=`<td class="${isPH?'blk-ph':cls}"><div class="ils-blk-cell${canEdit?' editable':''}" ${canEdit?`onclick="openIlsModal('${dk}','${row.k}')"`:''}>${isPH?`<div class="prog">🏫 PH</div>`:(nm?`<div class="ils-init">${nm}</div>${nt?`<div style="font-size:8.5px;opacity:.75;margin-top:2px">${nt}</div>`:''}`:canEdit?`<div style="font-size:9px;opacity:.25">+ add</div>`:'')}</div></td>`;}else{html+=`<td class="${isPH?'blk-ph':'ils-duty-bg'}"><div class="ils-duty-cell${canEdit?' editable':''}" ${canEdit?`onclick="openIlsModal('${dk}','${row.k}')"`:''}>${isPH?`<span style="color:#6b7280;font-size:10px">PH</span>`:(nm?nm.split('\n').map(x=>`<div class="ils-init-sm">${x.trim()}</div>`).join('')+(nt?`<div style="font-size:8.5px;color:#555;margin-top:2px">${nt}</div>`:''): canEdit?`<div style="font-size:9px;color:#9ca3af">+ add</div>`:'')}</div></td>`;}}html+=`</tr>`;}html+=`</tbody></table>`;document.getElementById('ilspaceTable').innerHTML=html;}
+const DEF_DANIEL={Mon:{hours:'9.30–1.00pm',wh:'WH',lunchNote:'Leave school',b1:{prog:'EXCOM (SDE) TTU2',room:'',ila:'Moira Robertson',reliever:'',note:'',type:'normal'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Moira Robertson',reliever:'',note:'',type:'normal'},b3:{prog:'',room:'',ila:'',reliever:'',note:'Leave school',type:'leave'}},Tue:{hours:'10.00–1.00pm',wh:'WH',lunchNote:'Leave school',b1:{prog:'10.00am NHS',room:'Room 1 Student Services',ila:'',reliever:'',note:'With Ritchie',type:'other'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Moira Robertson',reliever:'',note:'',type:'normal'},b3:{prog:'Counselling with Pam + Meet Mark',room:'',ila:'',reliever:'',note:'',type:'other'}},Wed:{hours:'10.00–2.55pm',wh:'Classes start 10am',lunchNote:'Lunch at school',b1:{prog:'PAE (FZO) TPI4',room:'',ila:'Marie Theunisz',reliever:'',note:'',type:'normal'},b2:{prog:'PAE (FZO) TPI4',room:'',ila:'Marie Theunisz',reliever:'',note:'',type:'normal'},b3:{prog:'PAE (FZO) TPI4',room:'',ila:'Moira Robertson',reliever:'',note:'Daniel leaves at 2.55',type:'normal'}},Thu:{hours:'10.00–2.55pm',wh:'WH',lunchNote:'Lunch at school',b1:{prog:'10.00am NHS',room:'Room 1 Student Services',ila:'',reliever:'',note:'With Ritchie',type:'other'},b2:{prog:'Maths online 11.45–12.45',room:'Room 1 Student Services',ila:'',reliever:'',note:'',type:'other'},b3:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Moira Robertson',reliever:'',note:'Daniel leaves at 2.55',type:'normal'}},Fri:{hours:'No school',wh:'',lunchNote:'',b1:{prog:'',room:'',ila:'',reliever:'',note:'',type:'noschool'},b2:{prog:'',room:'',ila:'',reliever:'',note:'',type:'noschool'},b3:{prog:'',room:'',ila:'',reliever:'',note:'',type:'noschool'}}};
+const DEF_CALEB={Mon:{hours:'8.45–3.00pm Mafa',wh:'WH',lunchNote:'Leave at 1pm',b1:{prog:'EXSCI (SGU) TMT2',room:'Zeeba/Kayla',ila:'Mafa Ilaoa',reliever:'Gabrielle',note:'',type:'normal'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Mafa Ilaoa',reliever:'Gabrielle',note:'',type:'normal'},b3:{prog:'',room:'',ila:'',reliever:'',note:'Leave school at 1pm',type:'leave'}},Tue:{hours:'8.45–3.00pm Mafa',wh:'WH',lunchNote:'Leave at 1pm',b1:{prog:'EXSCI (SGU) TMT2',room:'Zeeba/Kayla',ila:'Mafa Ilaoa',reliever:'Gabrielle',note:'',type:'normal'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Mafa Ilaoa',reliever:'Gabrielle',note:'',type:'normal'},b3:{prog:'',room:'',ila:'',reliever:'',note:'Leave school at 1pm',type:'leave'}},Wed:{hours:'No school',wh:'',lunchNote:'',b1:{prog:'',room:'',ila:'',reliever:'',note:'',type:'noschool'},b2:{prog:'',room:'',ila:'',reliever:'',note:'',type:'noschool'},b3:{prog:'',room:'',ila:'',reliever:'',note:'',type:'noschool'}},Thu:{hours:'8.45–3.00pm Mafa',wh:'WH',lunchNote:'Lunch at school',b1:{prog:'',room:'',ila:'',reliever:'',note:'',type:'leave'},b2:{prog:'Specialist Teacher 1:1',room:'',ila:'Mafa Ilaoa',reliever:'Gabrielle',note:'',type:'normal'},b3:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Kayla Kerapa',reliever:'',note:'',type:'normal'}},Fri:{hours:'10.00–3.00pm',wh:'WH',lunchNote:'Lunch at school',b1:{prog:'10.00am Meet Jennie',room:'',ila:'',reliever:'',note:'',type:'other'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',ila:'Kayla Kerapa',reliever:'',note:'',type:'normal'},b3:{prog:'EXSCI (SGU) TMT2',room:'Zeeba/Kayla',ila:'Kayla Kerapa',reliever:'',note:'',type:'normal'}}};
+const DEF_GAB={Mon:{hours:'8.45–1.00pm',wh:'WH',lunchNote:'Leave at 1pm',b1:{prog:'EXSCI (SGU) TMT2',room:'Zeeba/Kayla',student:'Caleb Walker',note:'',type:'normal'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',student:'Caleb Walker',note:'',type:'normal'},b3:{prog:'',room:'',student:'',note:'',type:'empty'}},Tue:{hours:'8.45–1.00pm',wh:'WH',lunchNote:'Leave at 1pm',b1:{prog:'EXSCI (SGU) TMT2',room:'Zeeba/Kayla',student:'Caleb Walker',note:'',type:'normal'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'',student:'Caleb Walker',note:'',type:'normal'},b3:{prog:'',room:'',student:'',note:'',type:'empty'}},Wed:{hours:'',wh:'',lunchNote:'',b1:{prog:'',room:'',student:'',note:'',type:'empty'},b2:{prog:'',room:'',student:'',note:'',type:'empty'},b3:{prog:'',room:'',student:'',note:'',type:'empty'}},Thu:{hours:'8.45–3.00pm',wh:'WH',lunchNote:'Lunch at school',b1:{prog:'',room:'',student:'',note:'',type:'empty'},b2:{prog:'Specialist Teacher 1:1',room:'',student:'Caleb Walker',note:'',type:'normal'},b3:{prog:'',room:'',student:'',note:'',type:'empty'}},Fri:{hours:'',wh:'',lunchNote:'',b1:{prog:'',room:'',student:'',note:'',type:'empty'},b2:{prog:'',room:'',student:'',note:'',type:'empty'},b3:{prog:'',room:'',student:'',note:'',type:'empty'}}};
+function renderStudentSched(sk,schedule,studentName,tableId,awayBarId,awayTextId){const isAway=studentAbsActiveThisWeek(studentName);const awayBar=document.getElementById(awayBarId);if(isAway){awayBar.style.display='block';const d=getStudentAbsThisWeek(studentName);document.getElementById(awayTextId).textContent=`${studentName.split(' ')[0]} is AWAY — ${d.map(a=>reasonLabel(a.reason)+(a.note?' ('+a.note+')':'')).join(', ')}.`;}else awayBar.style.display='none';const activePH=getActivePHDays();const DBLOCKS=[{key:'b1',label:'Block 1',time:'9.30–11.00'},{key:'_int',label:'Interval',time:'11.00–11.30',isBreak:true},{key:'b2',label:'Block 2',time:'11.30–1.00'},{key:'_lunch',label:'Lunch',time:'1.00–1.45',isBreak:true},{key:'b3',label:'Block 3',time:'1.45–3.15'}];let html=`<table class="tt" style="margin-bottom:10px"><colgroup><col style="width:78px">${DK.map(()=>'<col>').join('')}</colgroup><thead><tr class="c-namerow"><th colspan="6" style="text-align:left;padding:5px 8px;font-size:13px;font-weight:800">${studentName.toUpperCase()}${isAdmin?' <span style="font-size:10px;font-weight:400;opacity:.8">· click block to edit</span>':''}</th></tr><tr class="c-header"><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr><tr class="blk-hours"><td><div class="ci-break" style="font-size:9px;font-weight:700">Hours</div></td>${DK.map(dk=>`<td class="blk-hours"><div class="ci-break">${schedule[dk]?.hours||'—'}</div></td>`).join('')}</tr><tr class="blk-hours"><td><div class="ci-break" style="font-size:9px;font-weight:700">WH</div></td>${DK.map(dk=>`<td class="blk-hours"><div class="ci-break" style="font-weight:600">${schedule[dk]?.wh||''}</div></td>`).join('')}</tr></thead><tbody>`;for(const blk of DBLOCKS){html+=`<tr><td class="blk-break"><div class="ci-label"><strong>${blk.label}</strong><span style="font-weight:400;font-size:9px">${blk.time}</span></div></td>`;for(const dk of DK){const dd=schedule[dk]||{};const isPH=activePH.has(dk);const isNS=dd.b1?.type==='noschool';if(blk.isBreak){let bTxt='';if(isPH)bTxt='🏫 PH';else if(isNS)bTxt='No school';else if(isAway)bTxt='Away';else bTxt=blk.key==='_int'?'BREAK':dd.lunchNote||'';html+=`<td class="${isPH?'blk-ph':isNS||isAway?'blk-absent':'blk-break'}"><div class="ci-break">${bTxt}</div></td>`;continue;}if(isPH){html+=`<td class="blk-ph"><div class="ci"><div class="prog">🏫 ${getPHName(dk)}</div></div></td>`;continue;}if(isNS){html+=`<td class="blk-absent"><div class="ci"><div class="prog" style="color:#6b7280">No school</div></div></td>`;continue;}if(isAway){html+=`<td class="blk-absent"><div class="ci"><div class="prog" style="color:#374151">${studentName.split(' ')[0]} away</div></div></td>`;continue;}const cell=dd[blk.key]||{};const cls=BCLS[dk]?.[blk.key]||'blk-break';const ilaAbsent=cell.ila&&isAbsent(cell.ila);html+=`<td class="${cls}"><div class="ci${isAdmin?' editable':''}" ${isAdmin?`onclick="openStudentCellEdit('${sk}','${dk}','${blk.key}')"`:''}>`; if(cell.type==='leave'){html+=`<div style="font-size:10px;font-style:italic;opacity:.8;padding-top:8px">Leave school</div>`;}else if(cell.type==='other'||!cell.prog){if(cell.prog)html+=`<div class="prog" style="opacity:.85">${cell.prog}</div>`;if(cell.note)html+=`<div style="font-size:8.5px;opacity:.8;margin-top:2px">${cell.note}</div>`;if(isAdmin&&!cell.prog)html+=`<div style="color:rgba(255,255,255,.3);font-size:9px;text-align:center;padding-top:20px">+ Add</div>`;}else{if(cell.prog)html+=`<div class="prog">${cell.prog}</div>`;if(cell.room)html+=`<div class="room-text">${cell.room}</div>`;if(cell.ila&&cell.type==='normal')html+=`<div style="margin-top:3px"><span style="display:inline-block;background:${ilaAbsent?'rgba(180,0,0,.9)':'#be185d'};color:#fff;font-weight:700;font-size:8.5px;padding:1px 7px;border-radius:20px">${ilaAbsent?'⚠ ':' 👤 '}${cell.ila.split(' ')[0]}${ilaAbsent?' (absent)':''}</span></div>`;if(cell.reliever)html+=`<div style="font-size:8.5px;font-style:italic;opacity:.85;margin-top:2px">+ ${cell.reliever}</div>`;if(cell.note)html+=`<div style="font-size:8.5px;margin-top:2px;font-style:italic;opacity:.9">${cell.note}</div>`;}html+=`</div></td>`;}html+=`</tr>`;}html+=`</tbody></table>`;document.getElementById(tableId).innerHTML=html;}
+function openStudentCellEdit(sk,dk,bk){if(!isAdmin)return;currentStudentEdit={sk,dk,bk};const sched=sk==='daniel'?danielSchedule:calebSchedule;const cell=sched[dk]?.[bk]||{};const sName=sk==='daniel'?'Daniel Batten':'Caleb Walker';document.getElementById('studentModalTitle').textContent=`Edit ${sName} — ${dk} Block ${bk.replace('b','')}`;document.getElementById('studentModalSub').textContent=`${dk} · Hours: ${sched[dk]?.hours||'—'}`;document.getElementById('sMProg').value=cell.prog||'';document.getElementById('sMRoom').value=cell.room||'';document.getElementById('sMNote').value=cell.note||'';document.getElementById('sMReliever').value=cell.reliever||'';document.getElementById('sMType').value=cell.type||'normal';const sel=document.getElementById('sMILA');sel.innerHTML=`<option value="">— No ILA —</option>`+staff.map(s=>`<option value="${s.name}"${cell.ila===s.name?' selected':''}>${s.name}</option>`).join('');document.getElementById('studentModal').style.display='flex';}
+document.getElementById('studentModal').addEventListener('click',function(e){if(e.target===this)closeModal('studentModal');});
+function saveStudentSlot(){if(!currentStudentEdit||!isAdmin)return;const{sk,dk,bk}=currentStudentEdit;const sched=sk==='daniel'?danielSchedule:calebSchedule;if(!sched[dk])sched[dk]={};sched[dk][bk]={prog:document.getElementById('sMProg').value,room:document.getElementById('sMRoom').value,ila:document.getElementById('sMILA').value,reliever:document.getElementById('sMReliever').value,note:document.getElementById('sMNote').value,type:document.getElementById('sMType').value};closeModal('studentModal');autoSave();if(sk==='daniel')renderDaniel();else renderCaleb();}
+function clearStudentSlot(){if(!currentStudentEdit||!isAdmin)return;const{sk,dk,bk}=currentStudentEdit;const sched=sk==='daniel'?danielSchedule:calebSchedule;if(!sched[dk])sched[dk]={};sched[dk][bk]={prog:'',room:'',ila:'',reliever:'',note:'',type:'normal'};closeModal('studentModal');autoSave();if(sk==='daniel')renderDaniel();else renderCaleb();}
+function openGabCellEdit(dk,bk){if(!isAdmin)return;currentGabEdit={dk,bk};const cell=gabrielleSchedule[dk]?.[bk]||{};document.getElementById('gabModalTitle').textContent=`Edit Gabrielle — ${dk} Block ${bk.replace('b','')}`;document.getElementById('gabModalSub').textContent=`${dk} · Hours: ${gabrielleSchedule[dk]?.hours||'—'}`;document.getElementById('gMProg').value=cell.prog||'';document.getElementById('gMRoom').value=cell.room||'';document.getElementById('gMStudent').value=cell.student||'';document.getElementById('gMNote').value=cell.note||'';document.getElementById('gMType').value=cell.type||'normal';document.getElementById('gabModal').style.display='flex';}
+document.getElementById('gabModal').addEventListener('click',function(e){if(e.target===this)closeModal('gabModal');});
+function saveGabSlot(){if(!currentGabEdit||!isAdmin)return;const{dk,bk}=currentGabEdit;if(!gabrielleSchedule[dk])gabrielleSchedule[dk]={};gabrielleSchedule[dk][bk]={prog:document.getElementById('gMProg').value,room:document.getElementById('gMRoom').value,student:document.getElementById('gMStudent').value,note:document.getElementById('gMNote').value,type:document.getElementById('gMType').value};closeModal('gabModal');autoSave();renderGabrielle();}
+function clearGabSlot(){if(!currentGabEdit||!isAdmin)return;const{dk,bk}=currentGabEdit;if(!gabrielleSchedule[dk])gabrielleSchedule[dk]={};gabrielleSchedule[dk][bk]={prog:'',room:'',student:'',note:'',type:'empty'};closeModal('gabModal');autoSave();renderGabrielle();}
+function renderDaniel(){renderStudentSched('daniel',danielSchedule,'Daniel Batten','danielTable','danielAwayBar','danielAwayText');}
+function renderCaleb(){renderStudentSched('caleb',calebSchedule,'Caleb Walker','calebTable','calebAwayBar','calebAwayText');}
+function renderGabrielle(){const activePH=getActivePHDays();const DBLOCKS=[{key:'b1',label:'Block 1',time:'9.30–11.00'},{key:'_int',label:'Interval',time:'11.00–11.30',isBreak:true},{key:'b2',label:'Block 2',time:'11.30–1.00'},{key:'_lunch',label:'Lunch',time:'1.00–1.45',isBreak:true},{key:'b3',label:'Block 3',time:'1.45–3.15'}];let html=`<table class="tt" style="margin-bottom:10px"><colgroup><col style="width:78px">${DK.map(()=>'<col>').join('')}</colgroup><thead><tr class="c-namerow" style="background:#7c3aed"><th colspan="6" style="text-align:left;padding:5px 8px;font-size:13px;font-weight:800">GABRIELLE — Relief teacher supporting Caleb${isAdmin?' <span style="font-size:10px;font-weight:400;opacity:.8">· click to edit</span>':''}</th></tr><tr class="c-header"><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr><tr class="blk-hours"><td><div class="ci-break" style="font-size:9px;font-weight:700">Hours</div></td>${DK.map(dk=>`<td class="blk-hours"><div class="ci-break">${gabrielleSchedule[dk]?.hours||'—'}</div></td>`).join('')}</tr></thead><tbody>`;for(const blk of DBLOCKS){html+=`<tr><td class="blk-break"><div class="ci-label"><strong>${blk.label}</strong><span style="font-weight:400;font-size:9px">${blk.time}</span></div></td>`;for(const dk of DK){const dd=gabrielleSchedule[dk]||{};const isPH=activePH.has(dk);if(blk.isBreak){html+=`<td class="${isPH?'blk-ph':'blk-break'}"><div class="ci-break">${isPH?'🏫 PH':blk.key==='_int'?'BREAK':dd.lunchNote||''}</div></td>`;continue;}if(isPH){html+=`<td class="blk-ph"><div class="ci"><div class="prog">🏫 ${getPHName(dk)}</div></div></td>`;continue;}const cell=dd[blk.key]||{};const isEmpty=cell.type==='empty'||!cell.prog;if(isEmpty){html+=`<td class="blk-absent"><div class="ci${isAdmin?' editable':''}" ${isAdmin?`onclick="openGabCellEdit('${dk}','${blk.key}')"`:''}>${isAdmin?`<div style="color:#9ca3af;font-size:9px;text-align:center;padding-top:20px">+ Add</div>`:''}</div></td>`;continue;}const cls=BCLS[dk]?.[blk.key]||'blk-break';html+=`<td class="${cls}"><div class="ci${isAdmin?' editable':''}" ${isAdmin?`onclick="openGabCellEdit('${dk}','${blk.key}')"`:''}><div class="prog">${cell.prog}</div>${cell.room?`<div class="room-text">${cell.room}</div>`:''}${cell.student?`<div style="margin-top:3px"><span style="background:rgba(255,255,255,.22);color:#fff;font-size:8.5px;padding:1px 6px;border-radius:20px;border:1px solid rgba(255,255,255,.35)">👦 ${cell.student}</span></div>`:''}${cell.note?`<div style="font-size:8.5px;opacity:.8;margin-top:2px">${cell.note}</div>`:''}</div></td>`;} html+=`</tr>`;}html+=`</tbody></table>`;document.getElementById('gabrielleTable').innerHTML=html;}
+const kobeSchedule={Mon:{b1:{p:'Mafa',bu:'Mariette',n:'with Josh'},i1:{p:'Mafa',bu:'Mariette',n:'11:00–11:20'},i2:{p:'Zeeba',bu:'',n:'11:20–11:30'},b2:{p:'Zeeba',bu:'Mafa',n:''},l1:{p:'Zeeba',bu:'Mafa',n:'1:00–1:20'},l2:{p:'Marie',bu:'Mariette',n:'1:20–1:45'},b3:{p:'Marie',bu:'Mariette',n:''}},Tue:{b1:{p:'Mafa + Marie',bu:'Mariette',n:'with Josh'},i1:{p:'Mafa + Marie',bu:'Mariette',n:'11:00–11:20'},i2:{p:'Auroshri',bu:'',n:'11:20–11:30'},b2:{p:'Auroshri',bu:'Mafa + Zeeba',n:''},l1:{p:'Auroshri',bu:'Mafa + Zeeba',n:'1:00–1:20'},l2:{p:'Moira',bu:'Mafa + Mariette',n:'1:20–1:45'},b3:{p:'Moira',bu:'Mafa + Mariette',n:''}},Wed:{b1:{p:'Moira',bu:'Mariette',n:'9:55am pickup'},i1:{p:'Elizabeth',bu:'Mafa',n:'11:00–11:20'},i2:{p:'Moira',bu:'',n:'11:20–11:30'},b2:{p:'Moira',bu:'Mariette',n:''},l1:{p:'Moira',bu:'Mariette',n:'1:00–1:20'},l2:{p:'Marie',bu:'Mafa',n:'1:20–1:45'},b3:{p:'Marie',bu:'Mafa',n:''}},Thu:{b1:{p:'Marie + Moira',bu:'Mariette',n:''},i1:{p:'Moira',bu:'Mariette',n:'11:00–11:20'},i2:{p:'Marie',bu:'',n:'11:20–11:30'},b2:{p:'Marie',bu:'Mariette',n:'Melva visit'},l1:{p:'Marie',bu:'Mariette',n:'1:00–1:20'},l2:{p:'Zeeba',bu:'Mafa',n:'1:20–1:45'},b3:{p:'Zeeba',bu:'Mafa',n:''}},Fri:{b1:{p:'Elizabeth',bu:'Mafa',n:''},i1:{p:'Moira',bu:'Mariette',n:'11:00–11:20'},i2:{p:'Zeeba',bu:'',n:'11:20–11:30'},b2:{p:'Zeeba',bu:'Mafa',n:''},l1:{p:'Zeeba',bu:'Mafa',n:'1:00–1:20'},l2:{p:'Mafa',bu:'Mariette',n:'1:20–1:45'},b3:{p:'Mafa with Josh',bu:'Mariette',n:''}}};
+function renderKobe(){const ka=studentAbsActiveThisWeek('Kobe Afoa');const kb=document.getElementById('kobeAwayBanner');const activePH=getActivePHDays();if(ka){kb.style.display='block';const d=getStudentAbsThisWeek('Kobe Afoa');document.getElementById('kobeAwayText').textContent='Kobe is AWAY — '+d.map(a=>reasonLabel(a.reason)+(a.note?' ('+a.note+')':'')).join(', ')+'.';}else kb.style.display='none';const slots=[{k:'b1',l:'Block 1',t:'9:30–11:00',bk:'b1'},{k:'i1',l:'Interval A',t:'11:00–11:20',bk:'br'},{k:'i2',l:'Interval B',t:'11:20–11:30',bk:'br'},{k:'b2',l:'Block 2',t:'11:30–1:00',bk:'b2'},{k:'l1',l:'Lunch A',t:'1:00–1:20',bk:'br'},{k:'l2',l:'Lunch B',t:'1:20–1:45',bk:'br'},{k:'b3',l:'Block 3',t:'1:45–3:15',bk:'b3'}];let html=`<table class="tt"><colgroup><col style="width:78px">${DK.map(()=>'<col>').join('')}</colgroup><thead><tr class="c-header"><th>Slot</th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;for(const sl of slots){html+=`<tr><td class="blk-break"><div class="ci-label"><strong>${sl.l}</strong><span style="font-weight:400;font-size:9px">${sl.t}</span></div></td>`;for(const dk of DK){const isPH=activePH.has(dk);const s=kobeSchedule[dk]?.[sl.k];if(!s||isPH){html+=`<td class="${isPH?'blk-ph':'blk-break'}"><div class="ci-break">${isPH?'🏫 PH':ka?'Away':'—'}</div></td>`;continue;}const cls=ka?'blk-absent':sl.bk==='br'?'blk-break':BCLS[dk]?.[sl.bk]||'blk-break';html+=`<td class="${cls}"><div class="${sl.bk==='br'?'ci-break':'ci'}"><div class="prog">${ka?'Away':s.p}</div>${!ka&&s.bu?`<div class="room-text">${highlightRoom('Back up: '+s.bu)}</div>`:''}${!ka&&s.n?`<div style="font-size:8.5px;opacity:.85">${s.n}</div>`:''}</div></td>`;}html+=`</tr>`;}html+=`</tbody></table>`;document.getElementById('kobeTable').innerHTML=html;}
+function filterStudents(v){studentFilter=v.toLowerCase();renderStudents();}
+function renderStudents(){const filtered=keyStudents.filter(s=>!studentFilter||s.name.toLowerCase().includes(studentFilter));const away=filtered.filter(s=>studentAbsActiveThisWeek(s.name));const high=filtered.filter(s=>!studentAbsActiveThisWeek(s.name)&&s.tier==='high');const supp=filtered.filter(s=>!studentAbsActiveThisWeek(s.name)&&s.tier==='support');let html='';if(away.length){html+=`<div class="group-label" style="color:#831843">🎒 Away this week</div>`;html+=away.map(sCard).join('');}if(high.length){html+=`<div class="group-label" style="color:#78350f">⭐ Must always have ILA</div>`;html+=high.map(sCard).join('');}if(supp.length){html+=`<div class="group-label" style="color:#cc7000">◉ May need support</div>`;html+=supp.map(sCard).join('');}if(!html)html=`<div style="padding:2rem;text-align:center;color:#888;font-family:system-ui">No key students.</div>`;document.getElementById('studentsPanel').innerHTML=html;}
+function sCard(student){const away=studentAbsActiveThisWeek(student.name);const awayD=getStudentAbsThisWeek(student.name);const allAb=!away&&student.preferred.every(p=>isAbsent(p));const someAb=!away&&student.preferred.some(p=>isAbsent(p));const tb=student.tier==='high'?`<span class="ks-high" style="font-size:9px">Must have ILA</span>`:`<span class="ks-support" style="font-size:9px">May need support</span>`;let html=`<div class="student-card ${away?'away':allAb?'alert':someAb?'warn':''}"><div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><div style="flex:1"><strong style="font-size:12px">${student.name}</strong> ${tb}${student.note?`<div style="font-size:10px;color:#555;margin-top:2px">${student.note}</div>`:''}</div>${away?'<span class="badge badge-away">Away</span>':allAb?'<span class="badge badge-absent">No preferred ILA</span>':someAb?'<span class="badge badge-warn">Some absent</span>':'<span class="badge badge-ok">Covered</span>'}</div>`;if(away){awayD.forEach(a=>{html+=`<div style="background:#fce7f3;border-radius:6px;padding:5px 8px;font-size:11px;margin-bottom:4px;color:#831843;font-family:system-ui">🎒 ${reasonLabel(a.reason)}${a.note?' — '+a.note:''} (${a.from}${a.to!==a.from?' to '+a.to:''})</div>`;});}else{html+=`<div style="margin-bottom:4px;font-family:system-ui"><span style="font-size:10px;color:#555;font-weight:700">Preferred: </span>${student.preferred.map(p=>`<span class="ila-pill ${isAbsent(p)?'gone':'ok'}">${p.split(' ')[0]}</span>`).join('')}</div>`;if(student.canAlone)html+=`<span class="badge badge-ok" style="margin-bottom:4px">Can be alone 1 day</span>`;if(allAb)html+=`<div style="margin-top:6px;padding:6px 8px;background:#fef9c3;border:1px solid #fcd34d;border-radius:6px;font-family:system-ui"><div style="font-size:10px;font-weight:700;color:#78350f;margin-bottom:4px">⚠ Last resort:</div><span class="ila-pill lr">Fleur</span><span class="ila-pill lr">Mariette</span></div>`;}html+=`</div>`;return html;}
+function renderCoverage(){const onL=staff.filter(s=>staffHasLeaveThisWeek(s.name));const man=staff.filter(s=>absentStaff.has(s.name));const activePH=getActivePHDays();const stA=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='active');const imp=keyStudents.filter(ks=>!studentAbsActiveThisWeek(ks.name)&&ks.preferred.some(p=>isAbsent(p)));const upL=leaveBookings.filter(l=>bookingStatus(l.from,l.to)==='upcoming').slice(0,5);const upSA=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='upcoming').slice(0,5);const upPH=publicHolidays.filter(h=>phStatus(h.date)==='upcoming').slice(0,5);let html='';if(activePH.size){const names=[...activePH].map(dk=>`${DAYS[DK.indexOf(dk)]} — ${getPHName(dk)}`).join(', ');html+=`<div class="group-label" style="color:#5b21b6">🏫 Public holidays this week</div><div style="background:#f3f0ff;border:1.5px solid #a78bfa;border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:12px;font-family:system-ui;color:#5b21b6"><strong>${names}</strong> — auto-greyed out</div>`;}if(stA.length){html+=`<div class="group-label" style="color:#831843">🎒 Students away</div>`;html+=stA.map(a=>`<div style="background:#fdf4ff;border:1.5px solid #f9a8d4;border-radius:6px;padding:8px 12px;margin-bottom:5px;font-size:12px;font-family:system-ui"><strong>${a.student}</strong> <span class="lbadge l-student">${reasonLabel(a.reason)}</span> ${a.note?'— '+a.note:''} ${a.from}${a.to!==a.from?' to '+a.to:''}</div>`).join('');}if(onL.length){html+=`<div class="group-label">Staff on leave</div>`;html+=onL.map(s=>{const lv=leaveBookings.filter(l=>l.staff===s.name&&bookingStatus(l.from,l.to)==='active');return`<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:6px;padding:8px 12px;margin-bottom:5px;font-size:12px;font-family:system-ui"><strong>${s.name}</strong> <span class="lbadge ${lv[0]?typeClass(lv[0].type):'l-other'}">${lv.map(l=>typeName(l.type)).join(', ')}</span>${lv[0]?.note?' — '+lv[0].note:''}</div>`;}).join('');}if(man.length){html+=`<div class="group-label">Manually absent</div>`;html+=man.map(s=>`<div style="background:#e5e7eb;border:1.5px solid #9ca3af;border-radius:6px;padding:8px 12px;margin-bottom:5px;font-size:12px;font-family:system-ui"><strong>${s.name}</strong></div>`).join('');}if(imp.length){html+=`<div class="group-label">Key students impacted</div>`;html+=imp.map(s=>{const av=s.preferred.filter(p=>!isAbsent(p));const all=av.length===0;return`<div style="border:1.5px solid ${all?'#fcd34d':'#9ca3af'};border-radius:6px;padding:8px 12px;margin-bottom:5px;font-size:12px;font-family:system-ui;background:${all?'#fffbeb':'#fff'}"><strong>${s.name.split(',')[0]}</strong> — ${all?'<strong>No preferred ILA</strong>':`${av.length} available`}${all?`<div style="margin-top:4px;font-size:11px;color:#78350f">⚠ Last resort: Fleur or Mariette</div>`:''}</div>`;}).join('');}if(!activePH.size&&!onL.length&&!man.length&&!stA.length)html=`<div style="padding:1rem 0;color:#555;font-family:system-ui;font-size:12px">No absences this week.</div>`;if(upPH.length||upL.length||upSA.length){html+=`<div class="group-label" style="color:#1e40af">📌 Coming up</div>`;upPH.forEach(h=>{html+=`<div style="background:#f3f0ff;border:1.5px solid #c4b5fd;border-radius:6px;padding:7px 12px;margin-bottom:4px;font-size:12px;font-family:system-ui;color:#5b21b6">🏫 <strong>${h.name}</strong> — ${new Date(h.date).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long'})}</div>`;});upL.forEach(l=>{html+=`<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:6px;padding:7px 12px;margin-bottom:4px;font-size:12px;font-family:system-ui"><strong>${l.staff}</strong> — ${typeName(l.type)} — ${l.from}${l.to!==l.from?' to '+l.to:''}</div>`;});upSA.forEach(a=>{html+=`<div style="background:#faf5ff;border:1.5px solid #c084fc;border-radius:6px;padding:7px 12px;margin-bottom:4px;font-size:12px;font-family:system-ui">🎒 <strong>${a.student}</strong> — ${reasonLabel(a.reason)} — ${a.from}${a.to!==a.from?' to '+a.to:''}</div>`;});}html+=`<div class="last-resort-box" style="margin-top:12px"><div style="font-weight:700;font-size:12px;margin-bottom:6px;color:#78350f">Last resort support</div>${LAST_RESORT.map(lr=>`<div class="lr-person"><div class="lr-av">${lr.initials}</div><div><strong style="font-size:12px">${lr.name}</strong><div style="font-size:11px;color:#78350f">${lr.role}</div></div></div>`).join('')}</div>`;document.getElementById('coveragePanel').innerHTML=html;}
+function archiveCurrentWeek(){if(!isAdmin)return;const t=document.getElementById('termNum').value,w=document.getElementById('weekNum').value,ws=document.getElementById('weekStart').value,we=document.getElementById('weekEnd').value;const id=`T${t}W${w}_${ws}`;const label=`Term ${t} — Week ${w} (${ws} to ${we})`;const ex=archiveList.find(a=>a.id===id);if(ex){if(!confirm(`Archive for ${label} already exists. Overwrite?`))return;archiveList=archiveList.filter(a=>a.id!==id);try{localStorage.removeItem('archive_'+id);}catch(e){}}const snap={id,label,termNum:parseInt(t),weekNum:parseInt(w),weekStart:ws,weekEnd:we,savedAt:new Date().toLocaleString('en-NZ'),staff:JSON.parse(JSON.stringify(staff)),leaveBookings:JSON.parse(JSON.stringify(leaveBookings)),studentAbsences:JSON.parse(JSON.stringify(studentAbsences)),publicHolidays:JSON.parse(JSON.stringify(publicHolidays)),danielSchedule:JSON.parse(JSON.stringify(danielSchedule)),calebSchedule:JSON.parse(JSON.stringify(calebSchedule)),gabrielleSchedule:JSON.parse(JSON.stringify(gabrielleSchedule)),ilSpaceRoster:JSON.parse(JSON.stringify(ilSpaceRoster))};archiveList.push(snap);archiveList.sort((a,b)=>a.termNum!==b.termNum?a.termNum-b.termNum:a.weekNum-b.weekNum);persist('archiveList',archiveList);persist('archive_'+id,snap);alert(`✓ Week archived: ${label}`);if(currentView==='history')renderHistory();}
+function renderHistory(){const el=document.getElementById('historyList');const search=(document.getElementById('historySearch')?.value||'').toLowerCase();const tf=document.getElementById('historyTermFilter')?.value||'';const wf=document.getElementById('historyWeekFilter')?.value||'';let filtered=archiveList;if(tf)filtered=filtered.filter(a=>String(a.termNum)===tf);if(wf)filtered=filtered.filter(a=>String(a.weekNum)===wf);if(search)filtered=filtered.filter(a=>a.label.toLowerCase().includes(search));if(!filtered.length){el.innerHTML=`<div style="font-family:system-ui;font-size:12px;color:#555;padding:8px 0">${archiveList.length?'No matches.':'No weeks archived yet. Click 📦 Archive week to save a snapshot of the current week.'}</div>`;return;}el.innerHTML=filtered.map(a=>`<div class="archive-card${selectedArchiveId===a.id?' active-archive':''}" onclick="openArchiveDetail('${a.id}')"><div style="flex:1"><div style="font-weight:700;font-size:13px;font-family:system-ui">${a.label}</div><div style="font-size:11px;color:#6b7280;margin-top:2px;font-family:system-ui">Archived ${a.savedAt}</div></div><span class="badge badge-upcoming">View →</span>${isAdmin?`<button class="del-btn" onclick="event.stopPropagation();deleteArchive('${a.id}')">✕</button>`:''}</div>`).join('');}
+function openArchiveDetail(id){selectedArchiveId=id;let snap=archiveList.find(a=>a.id===id);if(!snap)snap=loadLocal('archive_'+id);if(!snap){alert('Archive not found.');return;}document.getElementById('historyDetailTitle').textContent='Viewing: '+snap.label;document.getElementById('historyDetailWrap').style.display='block';historyStaffSelected=snap.staff?.[0]?.name||'';renderHistoryStaffGrid(snap);renderHistoryTimetable(snap,historyStaffSelected);renderHistory();}
+function closeHistoryDetail(){selectedArchiveId=null;document.getElementById('historyDetailWrap').style.display='none';renderHistory();}
+function clearHistoryFilters(){document.getElementById('historySearch').value='';document.getElementById('historyTermFilter').value='';document.getElementById('historyWeekFilter').value='';renderHistory();}
+function deleteArchive(id){if(!isAdmin)return;if(!confirm('Delete this archived week?'))return;archiveList=archiveList.filter(a=>a.id!==id);persist('archiveList',archiveList);try{localStorage.removeItem('archive_'+id);}catch(e){}if(selectedArchiveId===id){selectedArchiveId=null;document.getElementById('historyDetailWrap').style.display='none';}renderHistory();}
+function renderHistoryStaffGrid(snap){document.getElementById('historyStaffGrid').innerHTML=(snap.staff||[]).map(s=>`<div class="staff-chip${s.name===historyStaffSelected?' selected':''}" onclick="selectHistoryStaff('${esc(snap.id)}','${esc(s.name)}')">${s.name.split(' ')[0]}</div>`).join('');}
+function selectHistoryStaff(archiveId,name){historyStaffSelected=name;let snap=archiveList.find(a=>a.id===archiveId)||loadLocal('archive_'+archiveId);if(snap){renderHistoryStaffGrid(snap);renderHistoryTimetable(snap,name);}}
+function renderHistoryTimetable(snap,sn){const s=(snap.staff||[]).find(x=>x.name===sn);document.getElementById('historyTimetableWrap').innerHTML=s?renderReadOnlyTT(s,snap.label):'';}
+function renderReadOnlyTT(s,subtitle){let html=`<table class="tt" style="margin-bottom:10px"><colgroup><col style="width:78px">${DK.map(()=>'<col>').join('')}</colgroup><thead><tr class="c-namerow"><th colspan="6" style="text-align:left;padding:5px 8px;font-size:13px;font-weight:800">${s.name.toUpperCase()} <span style="font-size:10px;font-weight:400;opacity:.75">(${subtitle})</span></th></tr><tr class="c-header"><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr><tr class="blk-hours"><td><div class="ci-break" style="font-size:9px;font-weight:700">Hours</div></td>${DK.map(dk=>`<td class="blk-hours"><div class="ci-break">${s.hours?.[dk]||'Not working'}</div></td>`).join('')}</tr></thead><tbody>`;const blocks=[{key:'b1',label:'Block 1',time:'9.30–11.00'},{key:'interval',label:'Interval',time:'11.00–11.30',isBreak:true},{key:'b2',label:'Block 2',time:'11.30–1.00'},{key:'lunch',label:'Lunch',time:'1.00–1.45',isBreak:true},{key:'b3',label:'Block 3',time:'1.45–3.15'}];for(const blk of blocks){html+=`<tr><td class="blk-break"><div class="ci-label"><strong>${blk.label}</strong><span style="font-weight:400;font-size:9px">${blk.time}</span></div></td>`;for(const dk of DK){if(blk.isBreak){html+=`<td class="blk-break"><div class="ci-break">${blk.key==='interval'?'BREAK':'LUNCH'}</div></td>`;continue;}const cell=s.schedule?.[dk]?.[blk.key]||{};const grey=!s.hours?.[dk];const _ovk=ovKey?.(s.name,dk,blk.key)||'';const _ovc=typeof colorOverrides!=='undefined'&&_ovk?colorOverrides[_ovk]:null;const _isOvd=!!_ovc&&_ovc!=='grey';const cls=_ovc?getOvCls(_ovc,dk):grey?'blk-absent':BCLS[dk]?.[blk.key]||'blk-break';html+=`<td class="${cls}"><div class="ci">${grey?`<div class="prog" style="color:#6b7280">Not working</div>`:cell.prog?`<div class="prog">${cell.prog}</div>${cell.room?`<div class="room-text">${highlightRoom(cell.room)}</div>`:''}${cell.students?`<div class="students-wrap">${highlightStudents(cell.students)}</div>`:''}`:''}</div></td>`;}html+=`</tr>`;}return html+'</tbody></table>';}
+function ensureSchedule(s){DK.forEach(dk=>{if(!s.schedule)s.schedule={};if(!s.schedule[dk])s.schedule[dk]={};['b1','b2','b3'].forEach(bk=>{if(!s.schedule[dk][bk])s.schedule[dk][bk]={prog:'',students:'',room:''};});});}
+function refreshSelects(){['editHoursStaff','removeStaffSel','leaveStaff','coverAbsentStaff','coveringILA'].forEach(id=>{const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;sel.innerHTML=staff.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');if(staff.find(s=>s.name===cur))sel.value=cur;});const sasel=document.getElementById('studentAbsName');if(sasel){sasel.innerHTML='<option value="">— Select —</option>'+keyStudents.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');}const bdaySel=document.getElementById('bdayStaff');if(bdaySel)bdaySel.innerHTML=[...staff].sort((a,b)=>a.name.localeCompare(b.name)).map(s=>`<option value="${s.name}">${s.name}</option>`).join('');renderStudentEditList();renderHoursEditor();}
+function addNewStaff(){if(!isAdmin)return;const name=document.getElementById('newStaffName').value.trim();const hrs=document.getElementById('newStaffHours').value.trim()||'9.30–3.00pm';if(!name){alert('Enter a name.');return;}if(staff.find(s=>s.name===name)){alert('Already exists.');return;}const hours={};const wh={};DK.forEach(dk=>{hours[dk]=hrs;wh[dk]='WH';});const schedule={};DK.forEach(dk=>{schedule[dk]={b1:{prog:''},b2:{prog:''},b3:{prog:''}};});staff.push({name,hours,wh,schedule});document.getElementById('newStaffName').value='';document.getElementById('newStaffHours').value='';autoSave();refreshSelects();renderAll();alert(`${name} added.`);}
+function removeStaff(){if(!isAdmin)return;const name=document.getElementById('removeStaffSel').value;if(!name){alert('Select a staff member.');return;}if(!confirm(`Remove ${name}?`))return;staff=staff.filter(s=>s.name!==name);if(selectedStaff===name)selectedStaff=staff[0]?.name||'';autoSave();refreshSelects();renderAll();}
+function renderHoursEditor(){const sel=document.getElementById('editHoursStaff');if(!sel)return;const name=sel.value;const s=staff.find(x=>x.name===name);const wrap=document.getElementById('hoursEditorWrap');if(!wrap||!s){if(wrap)wrap.innerHTML='';return;}wrap.innerHTML=`<div class="hours-grid"><div class="hdr"></div>${DK.map(dk=>`<div class="hdr">${dk}</div>`).join('')}<div class="hdr" style="text-align:left;font-size:10px">Hours</div>${DK.map(dk=>`<input type="text" id="h_${dk}" value="${s.hours[dk]||''}" placeholder="blank=off">`).join('')}<div class="hdr" style="text-align:left;font-size:10px">WH note</div>${DK.map(dk=>`<input type="text" id="wh_${dk}" value="${s.wh[dk]||''}">`).join('')}</div><div style="margin-top:8px"><button class="btn success" onclick="saveHours('${esc(name)}')">✓ Save hours for ${name.split(' ')[0]}</button></div>`;}
+function saveHours(name){if(!isAdmin)return;const s=staff.find(x=>x.name===name);if(!s)return;DK.forEach(dk=>{s.hours[dk]=document.getElementById('h_'+dk)?.value||'';s.wh[dk]=document.getElementById('wh_'+dk)?.value||'';});autoSave();renderAll();alert(`Hours saved for ${name.split(' ')[0]}.`);}
+function addNewStudent(){if(!isAdmin)return;const name=document.getElementById('newStudentName').value.trim();const tier=document.getElementById('newStudentTier').value;const prefRaw=document.getElementById('newStudentPreferred').value;if(!name){alert('Enter a student name.');return;}const preferred=prefRaw.split(',').map(p=>p.trim()).filter(Boolean);keyStudents.push({name,tier,preferred,casual:[],note:'',canAlone:false});document.getElementById('newStudentName').value='';document.getElementById('newStudentPreferred').value='';autoSave();refreshSelects();renderAll();alert(`${name} added.`);}
+function removeStudent(idx){if(!isAdmin)return;if(!confirm(`Remove ${keyStudents[idx].name}?`))return;keyStudents.splice(idx,1);autoSave();refreshSelects();renderAll();}
+function changeStudentTier(idx,tier){if(!isAdmin)return;keyStudents[idx].tier=tier;autoSave();renderStudentEditList();renderAll();}
+function renderStudentEditList(){const el=document.getElementById('studentEditList');if(!el)return;if(!keyStudents.length){el.innerHTML=`<div style="color:#888;font-size:12px;font-family:system-ui">No key students.</div>`;return;}el.innerHTML=keyStudents.map((s,i)=>`<div class="editable-row"><span style="min-width:180px;font-weight:600;font-size:12px;font-family:system-ui">${s.name}</span><select style="font-size:11px;border:1px solid #ccc;border-radius:4px;padding:2px 6px" onchange="changeStudentTier(${i},this.value)"><option value="high"${s.tier==='high'?' selected':''}>Must have ILA</option><option value="support"${s.tier==='support'?' selected':''}>May need support</option></select><span style="font-size:11px;color:#555;flex:1;font-family:system-ui">${s.preferred.join(', ')||'—'}</span><button class="btn danger" style="font-size:10px;padding:2px 7px" onclick="removeStudent(${i})">Remove</button></div>`).join('');}
+function updateCount(){const lc=staff.filter(s=>staffHasLeaveThisWeek(s.name)).length,mc=absentStaff.size,phc=getActivePHDays().size,sa=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='active').length;const up=leaveBookings.filter(l=>bookingStatus(l.from,l.to)==='upcoming').length+studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='upcoming').length+publicHolidays.filter(h=>phStatus(h.date)==='upcoming').length;const totalMsgs=(messages.allStaff?.text?1:0)+Object.values(messages.personal||{}).filter(m=>m.text).length;let b='';if(phc)b+=`<span class="badge badge-ph">🏫 ${phc} PH</span> `;if(lc)b+=`<span class="badge badge-leave">${lc} on leave</span> `;if(mc)b+=`<span class="badge badge-absent">${mc} absent</span> `;if(sa)b+=`<span class="badge badge-away">🎒 ${sa} away</span> `;if(up>0)b+=`<span class="badge badge-upcoming">📌 ${up} upcoming</span> `;if(totalMsgs)b+=`<span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5">📢 ${totalMsgs} msg${totalMsgs>1?'s':''}</span>`;document.getElementById('absenceCount').innerHTML=b;}
+const DEFAULT_STAFF=[
+{name:'Andrea Hall',hours:{Mon:'9.00–3.00pm',Tue:'9.00–3.15pm',Wed:'9.30–3.15pm',Thu:'9.00–3.00pm',Fri:'9.00–3.15pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'EXELL TMTBO'},b2:{prog:'Planning'},b3:{prog:'Planning'}},Tue:{b1:{prog:'EXELL TMTBO'},b2:{prog:'CRIM (RKE/SPE) TTU1/TTU2',students:'Bajwa Simranjit'},b3:{prog:'EXELL',students:'Al Ahmad Khalaf, Al Ahmad Mariam, Hakimi Mahdia'}},Wed:{b1:{prog:'EXELL TMTBO'},b2:{prog:'ELL',room:'with Auroshri'},b3:{prog:'ELL',room:'with Elizabeth'}},Thu:{b1:{prog:'EXELL TMTBO'},b2:{prog:'Planning'},b3:{prog:'CRIM (RKE/SPE) TTU1/TTU2',students:'Bajwa Simranjit'}},Fri:{b1:{prog:'ELL Support',room:'with Auroshri'},b2:{prog:'CRIM (RKE/SPE) TTU1/TTU2',students:'Bajwa Simranjit'},b3:{prog:'EXELL MPUBO'}}}},
+{name:'Arzoo Noori',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'EXHUM (NSH) PWH'}},Tue:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXHUM (HAR) MPU2'}},Wed:{b1:{prog:'EXART (SDU) TNK'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'SAC-FAST(SLA) TMT6/7'}},Thu:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'EXNUM (NSH) PWH'},b3:{prog:'PLAGUE (JCG/HAR) TPU/TNK'}},Fri:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXNUM / EXART'}}}},
+{name:'Auroshri Jain',hours:{Mon:'8.30–3.00pm',Tue:'8.30–3.00pm',Wed:'9.30–3.00pm',Thu:'8.30–3.00pm',Fri:'8.30–3.00pm'},wh:{Mon:'Kobe',Tue:'Kobe',Wed:'Classes start 10am',Thu:'Kobe',Fri:'Kobe'},schedule:{Mon:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Elizabeth',students:'Fenn Riley'},b2:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Mokoia',students:'Trevathan Larry'},b3:{prog:'EXLIT (MMN) TAN1'}},Tue:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Elizabeth',students:'Fenn Riley'},b2:{prog:'Kobe'},b3:{prog:'EXLIT (SDA) TAN2'}},Wed:{b1:{prog:'EXEMP (JFE) TTU3',room:'with Josh',students:'Bajwa Simranjit'},b2:{prog:'MSLS (JOA) TPO1',students:'Singh Ritvik'},b3:{prog:'EXEMP (JFE) TTU3',room:'with Josh'}},Thu:{b1:{prog:'EXEMP (JFE) TTU3',room:'with Josh',students:'Singh Ritvik'},b2:{prog:'BOOST1 TRH'},b3:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Mokoia'}},Fri:{b1:{prog:'ELL Support',room:'with Andrea'},b2:{prog:'Kobe backup'},b3:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Elizabeth',students:'Fenn Riley'}}}},
+{name:'Christina John',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'MMED (TRH) MMN',students:'Wackrow Cian'},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'EXCUL (GMC) MKA1/MKA2',students:'Walker Caleb, Al Ahmad Mariam, Schonberger Skyla'}},Tue:{b1:{prog:'MMED (TRH) MMN',students:'Wackrow Cian'},b2:{prog:'J PARK (SWN/GWH) TMT1'},b3:{prog:'EXART (MIE) TNK',room:'with Jan'}},Wed:{b1:{prog:'EXART (MIE) TNK',room:'with Jan'},b2:{prog:'J PARK (SWN/GWH) TMT1'},b3:{prog:'SAC-FAST(SLA) TMT6/7'}},Thu:{b1:{prog:'EXART (MIE) TNK'},b2:{prog:'EXCUL (GMC) MKA1/MKA2',students:'Walker Caleb, Al Ahmad Mariam'},b3:{prog:'J PARK (SWN/GWH) TMT1'}},Fri:{b1:{prog:''},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'MMED (TRH) MMN',students:'Wackrow Cian'}}}},
+{name:"Elizabeth Ng'onomo",hours:{Mon:'9.30–3.00pm',Tue:'8.30–3.00pm',Wed:'EOTC',Thu:'9.30–3.15pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'EOTC',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SPTG (JCG) TPU'},b2:{prog:'BOOST1 TRH',room:'with Lara'},b3:{prog:'Planning'}},Tue:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Auroshri',students:'Fenn Riley'},b2:{prog:'BOOST1 TRH',room:'with Lara'},b3:{prog:'SELL TWKKAI'}},Wed:{b1:{prog:'EOTC'},b2:{prog:'EOTC'},b3:{prog:'EOTC'}},Thu:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Auroshri',students:'Fenn Riley'},b2:{prog:'Planning'},b3:{prog:'ELL',room:'with Andrea'}},Fri:{b1:{prog:'SELL TWKKAI'},b2:{prog:'BOOST1 TRH',room:'with Lara'},b3:{prog:'EXIL-TPI3',students:'Liu Andrew'}}}},
+{name:'Emma Sweetman',hours:{Mon:'1.45–3.15pm',Tue:'1.45–3.15pm',Wed:'',Thu:'9.30–1.00pm',Fri:'9.30–11.00am'},wh:{Mon:'WH',Tue:'WH',Wed:'',Thu:'WH',Fri:'WH'},offBlocks:{Mon:['b1','b2'],Tue:['b1','b2'],Wed:[],Thu:['b3'],Fri:['b2','b3']},schedule:{Mon:{b1:{prog:''},b2:{prog:''},b3:{prog:'EXNUM (MBN) POU2'}},Tue:{b1:{prog:''},b2:{prog:''},b3:{prog:'EXMAT (JER) POU2'}},Wed:{b1:{prog:''},b2:{prog:''},b3:{prog:''}},Thu:{b1:{prog:'EXMAT (JER) POU2'},b2:{prog:'EXNUM (MBN) POU2'},b3:{prog:''}},Fri:{b1:{prog:'EXMAT (JER) POU2'},b2:{prog:''},b3:{prog:''}}}},
+{name:'Ethan Broadley',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'10.00–1.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'TUNAROX (AWN/LSI) TAN1/TAN2'},b3:{prog:'SNUM (MMA) POU3'}},Tue:{b1:{prog:'SNUM (RPU) POU2',students:'Schonberger Skyla'},b2:{prog:'TUNAROX (AWN/LSI) TAN1/TAN2'},b3:{prog:'EXHPE (AWN) TPI1',room:'with Jan'}},Wed:{b1:{prog:''},b2:{prog:'Puna (NAM)'},b3:{prog:'EXCOM (SDE) PWH1',students:'Lucas Cooper'}},Thu:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'SNUM (MMA) POU3'},b3:{prog:'TUNAROX (AWN/LSI) TAN1/TAN2'}},Fri:{b1:{prog:'EXCOM (SDE) PWH1',students:'Lucas Cooper'},b2:{prog:'EXHPE (AWN) TPI1',room:'with Jan'},b3:{prog:'SNUM (RPU) POU2',students:'Schonberger Skyla'}}}},
+{name:'Fahimeh Tamadon',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'',Thu:'9.45–3.15pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:''},schedule:{Mon:{b1:{prog:'EXIL TPI3',room:'with Lara',students:'Al Ahmad Khalaf, Hakimi Mahdia'},b2:{prog:'BOOST (LSP) TWKKAI'},b3:{prog:'EXMAT (RPU) MPU5'}},Tue:{b1:{prog:'EXIL TPI3',room:'with Lara',students:'Al Ahmad Khalaf, Hakimi Mahdia, Liu Andrew'},b2:{prog:'BOOST (LSP) TWKKAI TRH'},b3:{prog:'SELL (LSP) TWKKAI'}},Wed:{b1:{prog:'SELL (LSP) TWKKAI'},b2:{prog:'EXHPE (AWN) TPI1'},b3:{prog:'BOOST (LSP) TWKKAI'}},Thu:{b1:{prog:'SELL (LSP) TWKKAI'},b2:{prog:'EXMAT (RPU) MPU5'},b3:{prog:'EXIL TPI3',room:'with Lara',students:'Al Ahmad Khalaf, Hakimi Mahdia, Liu Andrew'}},Fri:{b1:{prog:''},b2:{prog:'BOOST (LSP) TWKKAI'},b3:{prog:''}}}},
+{name:'Fiadh McGall',hours:{Mon:'9.30–3.00pm',Tue:'',Wed:'',Thu:'9.30–3.00pm',Fri:''},wh:{Mon:'WH',Tue:'',Wed:'',Thu:'WH',Fri:''},schedule:{Mon:{b1:{prog:'EXHUM (MMC) MPU5',students:'Lucas Cooper'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXLIT (SDA) TAN2'}},Tue:{b1:{prog:'STOP (NIX) TPI2'},b2:{prog:'EXLIT (SDA) TAN2 + EXLIT (ROS) TAN1'},b3:{prog:'PLAGUE (JCG/HAR) TPU/TNK'}},Wed:{b1:{prog:''},b2:{prog:''},b3:{prog:''}},Thu:{b1:{prog:''},b2:{prog:''},b3:{prog:''}},Fri:{b1:{prog:''},b2:{prog:''},b3:{prog:''}}}},
+{name:'Fleur Karasawa',hours:{Mon:'Admin',Tue:'Admin',Wed:'Admin',Thu:'Admin',Fri:'Admin'},wh:{Mon:'Team Leader',Tue:'Team Leader',Wed:'Team Leader',Thu:'Team Leader',Fri:'Team Leader'},schedule:{Mon:{b1:{prog:'Last resort only'},b2:{prog:'Last resort only'},b3:{prog:'Last resort only'}},Tue:{b1:{prog:'Last resort only'},b2:{prog:'Last resort only'},b3:{prog:'Last resort only'}},Wed:{b1:{prog:'Last resort only'},b2:{prog:'Last resort only'},b3:{prog:'Last resort only'}},Thu:{b1:{prog:'Last resort only'},b2:{prog:'Last resort only'},b3:{prog:'Last resort only'}},Fri:{b1:{prog:'Last resort only'},b2:{prog:'Last resort only'},b3:{prog:'Last resort only'}}}},
+{name:'Jamin Nicoll',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:''},schedule:{Mon:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'STORY (TPO) MBN/NIX'},b3:{prog:'EXSCI (BCH) TMT7',students:'Bajwa Simranjit, Lucas Cooper'}},Tue:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'STORY (TPO) MBN/NIX'},b3:{prog:'SALGC (MBN) POU3'}},Wed:{b1:{prog:'SALGC (MBN) POU3'},b2:{prog:'EXSCI (BCH) TMT7',students:'Bajwa Simranjit, Lucas Cooper'},b3:{prog:'STORY (TPO) MBN/NIX'}},Thu:{b1:{prog:'SALGC (MBN) POU3'},b2:{prog:'STORY (TPO) MBN/NIX'},b3:{prog:'EXNUM (MBN) POU3'}},Fri:{b1:{prog:''},b2:{prog:''},b3:{prog:''}}}},
+{name:'Jan Billington',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'Leave',Fri:'9.30–1.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SPTG (JCG) TPU'},b2:{prog:'XLIFE (KDA/MIE) TPI4'},b3:{prog:'EXHPE (AWN) TPI1',room:'with Mafa'}},Tue:{b1:{prog:'SPTG (JCG) TPU'},b2:{prog:'XLIFE (KDA/MIE) TPI4'},b3:{prog:'EXART (MIE) TNK',room:'with Christina'}},Wed:{b1:{prog:'EXART (MIE) TNK',room:'with Christina'},b2:{prog:'EXHPE (AWN) TPI1',room:'with Mafa'},b3:{prog:'XLIFE (KDA/MIE) TPI4'}},Thu:{b1:{prog:''},b2:{prog:'? XLIFE TPI4'},b3:{prog:'? SPTG TPU'}},Fri:{b1:{prog:'EXART (MIE) TNK'},b2:{prog:'XLIFE (KDA/MIE) TPI4'},b3:{prog:''}}}},
+{name:'Josh Taula',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'10.00–1.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'Kobe with Mafa'},b2:{prog:'JPARK (MGA/MWA) TMT5',students:'Lucas Cooper'},b3:{prog:'EXLIT (MMN) TAN1'}},Tue:{b1:{prog:'EXNUM (KDO) MPU3'},b2:{prog:'JPARK (MGA/MWA) TMT5',students:'Lucas Cooper'},b3:{prog:'EXEMP (JNL) TTU3',room:'with Auroshri',students:'Bajwa Simranjit'}},Wed:{b1:{prog:'Kobe with Marie'},b2:{prog:'Puna'},b3:{prog:'JPARK (MGA/MWA) TMT5',students:'Lucas Cooper'}},Thu:{b1:{prog:'EXEMP (JNL) TTU3',room:'with Auroshri',students:'Bajwa Simranjit'},b2:{prog:'EXLIT (MMN) TAN1'},b3:{prog:'SNUM (MMA) POU3',room:'with Mokoia'}},Fri:{b1:{prog:'EXEMP TTU3'},b2:{prog:'JPARK (MGA/MWA) TMT5',students:'Lucas Cooper'},b3:{prog:'EXNUM (KDO) MPU3'}}}},
+{name:'Kayla Kerapa',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:''},schedule:{Mon:{b1:{prog:'EXSCI (SGU) KOM1',room:'with Zeeba',students:'Walker Caleb'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'with Moira',students:'Batten Daniel, Walker Caleb'},b3:{prog:'EXSCI (BCH) TMT7',students:'Bajwa Simranjit, Lucas Cooper'}},Tue:{b1:{prog:'EXSCI (SGU) KOM1',room:'with Zeeba',students:'Walker Caleb'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'with Moira',students:'Batten Daniel, Walker Caleb'},b3:{prog:'SPHX (SGU) TMT6'}},Wed:{b1:{prog:'SEMP (JAH) KOM1'},b2:{prog:'EXSCI (BCH) TMT7',students:'Bajwa Simranjit, Lucas Cooper'},b3:{prog:'EXLIT (SDA) TAN2'}},Thu:{b1:{prog:'SEMP (JAH) KOM1'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'with Moira',students:'Walker Caleb'},b3:{prog:'SEMP (JAH) KOM1'}},Fri:{b1:{prog:''},b2:{prog:''},b3:{prog:'EXSCI (SGU) KOM1',room:'with Zeeba',students:'Walker Caleb'}}}},
+{name:'Lara Abuarar',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'EXIL TPI3',room:'with Fahimeh',students:'Al Ahmad Khalaf, Hakimi Mahdia'},b2:{prog:'BOOST1 TRH',room:'with Elizabeth'},b3:{prog:'EXHPE (OPO) TOROA2'}},Tue:{b1:{prog:'EXIL TPI3',room:'with Fahimeh',students:'Al Ahmad Khalaf, Hakimi Mahdia, Liu Andrew'},b2:{prog:'BOOST1 TRH',room:'with Elizabeth'},b3:{prog:'EXSCI (EDU) MPU5'}},Wed:{b1:{prog:'EXSCI (EDU) MPU5'},b2:{prog:'EXHPE (OPO) TOROA2'},b3:{prog:'BOOST1 TRH',room:'with Elizabeth'}},Thu:{b1:{prog:'EXSCI (EDU) MPU5'},b2:{prog:'BOOST1 TRH',room:'with Elizabeth'},b3:{prog:'EXIL TPI3',room:'with Fahimeh',students:'Al Ahmad Khalaf, Hakimi Mahdia'}},Fri:{b1:{prog:'EXSCI (EDU) MPU5'},b2:{prog:'BOOST1 TRH'},b3:{prog:'EXIL TPI3',students:'Al Ahmad Khalaf'}}}},
+{name:'Lola Crowe',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Available',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:''},b2:{prog:''},b3:{prog:''}},Tue:{b1:{prog:''},b2:{prog:''},b3:{prog:''}},Wed:{b1:{prog:'Available'},b2:{prog:''},b3:{prog:''}},Thu:{b1:{prog:''},b2:{prog:''},b3:{prog:''}},Fri:{b1:{prog:''},b2:{prog:''},b3:{prog:''}}}},
+{name:'Mafa Ilaoa',hours:{Mon:'8.45–3.00pm',Tue:'8.30–3.00pm',Wed:'9.30–3.00pm',Thu:'8.45–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH Caleb',Tue:'WH Caleb',Wed:'Classes start 10am',Thu:'WH Caleb',Fri:'WH'},schedule:{Mon:{b1:{prog:'Kobe with Josh',room:'Back up: Mariette'},b2:{prog:'MEMP (JFE) TTU3',students:'Fenn Riley'},b3:{prog:'SAC-SNUM (MMA) POU3'}},Tue:{b1:{prog:'Kobe with Josh',room:'Back up: Mariette'},b2:{prog:'E2E (CMC) TTU3'},b3:{prog:'EXHPE (AWN) TPI1',room:'with Jan'}},Wed:{b1:{prog:'EXART (MIE) TNK',room:'with Christina'},b2:{prog:'MANAAKI (RKE) MPU2'},b3:{prog:'EXCUL (GMC) MKA1/MKA2',room:'with Christina',students:'Al Ahmad Mariam, Schonberger Skyla, Walker Caleb'}},Thu:{b1:{prog:'MSLS (SPE) TWKPIR',students:'Fenn Riley'},b2:{prog:'SAC-SNUM (MMA) POU3'},b3:{prog:'MSLS (SPE) TWKPIR',room:'Kobe backup',students:'Fenn Riley'}},Fri:{b1:{prog:'MANAAKI (RKE) MPU2',room:'Kobe backup',students:'Singh Ritvik'},b2:{prog:'EXCUL (GMC) MKA1/MKA2',students:'Al Ahmad Mariam, Schonberger Skyla, Walker Caleb'},b3:{prog:'MEMP (JFE) TTU3 / Kobe',students:'Singh Ritvik, Fenn Riley'}}}},
+{name:'Mariette Stoop',hours:{Mon:'8.30–3.00pm',Tue:'8.30–3.00pm',Wed:'8.30–3.00pm',Thu:'8.30–3.00pm',Fri:'8.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'Kobe backup'},b2:{prog:'Hannah Mullins — Student Services'},b3:{prog:'Kobe backup'}},Tue:{b1:{prog:'Kobe backup'},b2:{prog:'Hannah Mullins 1:00–1:30'},b3:{prog:'Kobe backup'}},Wed:{b1:{prog:'Kobe backup'},b2:{prog:'Kobe backup'},b3:{prog:'Kobe backup'}},Thu:{b1:{prog:'Kobe backup'},b2:{prog:'Kobe backup'},b3:{prog:'Kobe backup'}},Fri:{b1:{prog:'Kobe backup'},b2:{prog:'Kobe backup'},b3:{prog:'Kobe backup'}}}},
+{name:'Marie Theunisz',hours:{Mon:'9.30–3.00pm',Tue:'8.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'8.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SMED (FWE) TAN2',students:'Singh Ritvik'},b2:{prog:'XLIFE (KDA/MIE) TPI4'},b3:{prog:'Kobe',room:'Back up: Mariette'}},Tue:{b1:{prog:'Kobe with Josh',room:'Back up: Mariette'},b2:{prog:'MPSY (BWE) MPU3',students:'Wackrow Cian'},b3:{prog:'EXSCI (BCH) TMT7',students:'Bajwa Simranjit, Lucas Cooper'}},Wed:{b1:{prog:'SMED (FWE) TAN2',students:'Singh Ritvik'},b2:{prog:'XLIFE (KDA/MIE) TPI4'},b3:{prog:'EXMED (FWE) TAN2'}},Thu:{b1:{prog:'EXMED (FWE) TAN2'},b2:{prog:'MPSY (BWE) MPU3',room:'with Moira',students:'Wackrow Cian'},b3:{prog:'XLIFE (KDA/MIE) TPI4'}},Fri:{b1:{prog:'Kobe',room:'Back up: Mariette'},b2:{prog:'MPSY (BWE) MPU3',room:'with Moira',students:'Wackrow Cian'},b3:{prog:'SMED (FWE) TAN2',students:'Singh Ritvik'}}}},
+{name:'Moira Robertson',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'EXCOM (SDE) TTU2',students:'Bajwa Simranjit, Batten Daniel'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'with Kayla',students:'Batten Daniel, Walker Caleb'},b3:{prog:'SNUM (MMA) POU3'}},Tue:{b1:{prog:'EXCOM (SDE) TTU2',students:'Bajwa Simranjit, Batten Daniel'},b2:{prog:'SPEED (JHB/KEH) PPK1/TPI3',room:'with Kayla',students:'Batten Daniel, Walker Caleb'},b3:{prog:'MENG (LSI) PAR',students:'Wackrow Cian'}},Wed:{b1:{prog:'Kobe',room:'Backup: Mariette'},b2:{prog:'Kobe',room:'Backup: Mariette'},b3:{prog:'EXSFASH (KMN) PPK'}},Thu:{b1:{prog:'EXSFASH (KMN) PPK'},b2:{prog:'PROJECTS TMTBO',students:'Trevathan Larry'},b3:{prog:'PAE (FZO) TPI4',students:'Batten Daniel'}},Fri:{b1:{prog:'EXSFASH (KMN) PPK / Kobe'},b2:{prog:'MENG (LSI) PAR',students:'Wackrow Cian'},b3:{prog:'SPEED (JHB/KEH) / EXCOM TTU2',students:'Bajwa Simranjit'}}}},
+{name:'Mokoia Hamiora',hours:{Mon:'8.45–3.15pm',Tue:'8.45–3.15pm',Wed:'9.30–1.45pm',Thu:'8.45–3.15pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'WH',Thu:'WH',Fri:''},schedule:{Mon:{b1:{prog:'EXTRM (MTO) TTO',students:'Trevathan Larry'},b2:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',students:'Trevathan Larry'},b3:{prog:'PROJECTS TMTBO',students:'Trevathan Larry'}},Tue:{b1:{prog:'EXTRM (MTO) TTO',students:'Trevathan Larry'},b2:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Zeeba'},b3:{prog:'SNUM (MMA) POU3'}},Wed:{b1:{prog:''},b2:{prog:'Te Ao Haka'},b3:{prog:'STRM (MTO) TTO'}},Thu:{b1:{prog:'STRM (MTO) TTO'},b2:{prog:'PROJECTS TMTBO / SNUM POU3'},b3:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Auroshri'}},Fri:{b1:{prog:'STRM / Te Ao Haka'},b2:{prog:'ADLSNCE TPI1/TPI2'},b3:{prog:'EXTRM (MTO) TTO'}}}},
+{name:'Zeeba Qadami',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'Kobe',room:'Back up: Mafa'},b3:{prog:'EXDART (KAY) TPU',students:'Hakimi Mahdia'}},Tue:{b1:{prog:'EXSCI (SGU) KOM1',room:'with Kayla',students:'Walker Caleb'},b2:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Mokoia',students:'Trevathan Larry'},b3:{prog:'SHIS (MMC) TPO1',students:'Singh Ritvik'}},Wed:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Mokoia'},b3:{prog:'Kaitiaki POU',students:'Bajwa Simranjit'}},Thu:{b1:{prog:'EXSCI (SGU) KOM1',room:'with Kayla',students:'Walker Caleb'},b2:{prog:'Kobe backup / Kaitiaki POU',students:'Bajwa Simranjit'},b3:{prog:'Kobe',room:'Back up: Mafa'}},Fri:{b1:{prog:'SHIS (MMC) TPO1',students:'Singh Ritvik'},b2:{prog:'EXDART (KAY) TPU',students:'Hakimi Mahdia'},b3:{prog:'SAC-SNUM (RPU) POU2 / EXSCI KOM1',room:'with Kayla'}}}}
+];
+const DEFAULT_KEY_STUDENTS=[
+{name:'Riley Fenn',tier:'high',preferred:['Auroshri Jain','Mafa Ilaoa'],casual:[],note:'',canAlone:false},
+{name:'Ritvik Singh',tier:'high',preferred:['Auroshri Jain','Mafa Ilaoa','Marie Theunisz','Zeeba Qadami'],casual:[],note:'',canAlone:false},
+{name:'Kobe Afoa',tier:'high',preferred:['Auroshri Jain','Mafa Ilaoa','Marie Theunisz','Zeeba Qadami','Moira Robertson',"Elizabeth Ng'onomo",'Josh Taula'],casual:['Lola Crowe'],note:'Full Kobe timetable — see Kobe tab',canAlone:false},
+{name:'Cian Wackrow',tier:'high',preferred:['Christina John','Marie Theunisz','Moira Robertson',"Elizabeth Ng'onomo"],casual:[],note:'',canAlone:false},
+{name:'Caleb Walker',tier:'high',preferred:['Christina John','Kayla Kerapa','Mafa Ilaoa','Zeeba Qadami'],casual:['Lola Crowe'],note:'',canAlone:false},
+{name:'Andrew Liu',tier:'high',preferred:['Lara Abuarar','Mafa Ilaoa','Marie Theunisz','Kayla Kerapa'],casual:[],note:'',canAlone:false},
+{name:'Daniel Batten',tier:'high',preferred:['Moira Robertson','Marie Theunisz'],casual:['Lola Crowe'],note:'',canAlone:false},
+{name:'Hannah Mullins',tier:'high',preferred:['Mariette Stoop','Auroshri Jain'],casual:[],note:'',canAlone:false},
+{name:'Cooper Lucas',tier:'support',preferred:['Fiadh McGall','Ethan Broadley','Jamin Nicoll','Josh Taula'],casual:[],note:'OK to be on own for a day',canAlone:true},
+{name:'Simran Bajwa',tier:'support',preferred:['Moira Robertson','Jamin Nicoll','Josh Taula','Auroshri Jain','Andrea Hall'],casual:[],note:'',canAlone:false},
+{name:'Mahdia Hakimi',tier:'support',preferred:['Zeeba Qadami'],casual:[],note:'Any female ILA in yellow classes',canAlone:false},
+{name:'Mariam Al Ahmad & Skyla Schonberger',tier:'support',preferred:['Mafa Ilaoa','Christina John'],casual:[],note:'Yellow line classes',canAlone:false},
+{name:'Yazan Kharsa, Khalaf Al Ahmad, Rina Bokilo-John, Ahmad Alsaloum, Larry Trevathan & Tangaroa Wilson-Tahau',tier:'support',preferred:['Jan Billington','Ethan Broadley'],casual:[],note:'Yellow line classes',canAlone:false}
+];
+function init(){
+  staff=loadLocal('staff')||JSON.parse(JSON.stringify(DEFAULT_STAFF));
+  keyStudents=loadLocal('keyStudents')||JSON.parse(JSON.stringify(DEFAULT_KEY_STUDENTS));
+  leaveBookings=loadLocal('leaveBookings')||[{id:1,staff:'Josh Taula',from:'2026-05-11',to:'2026-05-11',type:'sick',note:'Sick'},{id:2,staff:'Josh Taula',from:'2026-05-15',to:'2026-05-15',type:'sick',note:'Sick'},{id:3,staff:'Lara Abuarar',from:'2026-05-15',to:'2026-05-15',type:'sick',note:'Sick'},{id:4,staff:'Moira Robertson',from:'2026-05-15',to:'2026-05-15',type:'sick',note:'Sick'},{id:5,staff:'Mokoia Hamiora',from:'2026-05-15',to:'2026-05-15',type:'sick',note:'Sick'}];
+  studentAbsences=loadLocal('studentAbsences')||[{id:1,student:'Kobe Afoa',from:'2026-06-02',to:'2026-06-06',reason:'travel',note:'Trip to Samoa'}];
+  coverAssignments=loadLocal('coverAssignments')||[];
+  publicHolidays=loadLocal('publicHolidays')||[];
+  messages=loadLocal('messages')||{allStaff:{text:'',sentBy:'',sentAt:''},personal:{}};
+  birthdays=loadLocal('birthdays')||{};
+  ilSpaceRoster=loadLocal('ilSpaceRoster')||JSON.parse(JSON.stringify(DEFAULT_ILS));
+  danielSchedule=loadLocal('danielSchedule')||JSON.parse(JSON.stringify(DEF_DANIEL));
+  calebSchedule=loadLocal('calebSchedule')||JSON.parse(JSON.stringify(DEF_CALEB));
+  gabrielleSchedule=loadLocal('gabrielleSchedule')||JSON.parse(JSON.stringify(DEF_GAB));
+  archiveList=loadLocal('archiveList')||[];
+  adminPin=loadLocal('adminPin')||'9550';
+  const sm=loadLocal('weekMeta');
+  if(sm){document.getElementById('weekStart').value=sm.weekStart||'2026-05-11';document.getElementById('termNum').value=sm.termNum||'2';document.getElementById('weekNum').value=sm.weekNum||'5';}
+  if(leaveBookings.length)leaveIdCtr=Math.max(...leaveBookings.map(l=>l.id))+1;
+  if(studentAbsences.length)absIdCtr=Math.max(...studentAbsences.map(a=>a.id))+1;
+  if(coverAssignments.length)coverIdCtr=Math.max(...coverAssignments.map(c=>c.id))+1;
+  if(publicHolidays.length)phIdCtr=Math.max(...publicHolidays.map(h=>h.id))+1;
+  staff.forEach(ensureSchedule);
+  const ws=new Date(document.getElementById('weekStart').value);const we=new Date(ws);we.setDate(ws.getDate()+4);document.getElementById('weekEnd').value=we.toISOString().split('T')[0];
+  updateWeekLabel();initBirthdayForm();initLogin();if(typeof loadColorOverrides==='function')loadColorOverrides();if(typeof loadDraft==='function')loadDraft();if(typeof loadLineStudents==='function')loadLineStudents();
+}
+init();
+
+
+// ═══════════════════════════════════════════════════════════════
+//  ALL NEW FEATURES — added cleanly on top of ila_combined.js
+// ═══════════════════════════════════════════════════════════════
+
+// ── Colour overrides ─────────────────────────────────────────
+function loadColorOverrides(){
+  try{colorOverrides=JSON.parse(localStorage.getItem('colorOverrides')||'{}');}catch(e){colorOverrides={};}
+}
+function saveColorOverrides(){
+  try{localStorage.setItem('colorOverrides',JSON.stringify(colorOverrides));}catch(e){}
+}
+function ovKey(sn,dk,bk){return sn+'|'+dk+'|'+bk;}
+function getOvCls(colorKey,dk){
+  if(colorKey==='grey')return 'blk-absent';
+  if(colorKey==='green')return BCLS[dk]?BCLS[dk].b1:'Mon-b1';
+  if(colorKey==='blue')return BCLS[dk]?BCLS[dk].b2:'Mon-b2';
+  if(colorKey==='yellow'){var y={Mon:'Mon-b3',Tue:'Mon-b3',Wed:'Mon-b3',Thu:'Thu-b2',Fri:'Mon-b3'};return y[dk]||'Mon-b3';}
+  if(colorKey==='red'){var r={Mon:'Tue-b3',Tue:'Tue-b3',Wed:'Tue-b3',Thu:'Thu-b1',Fri:'Fri-b1'};return r[dk]||'Tue-b3';}
+  if(colorKey==='purple')return 'Wed-b1';
+  return 'blk-absent';
+}
+
+// ── isNotWorking updated to support offBlocks ─────────────────
+function isNotWorkingBlock(n,dk,bk){
+  var s=staff.find(function(x){return x.name===n;});
+  if(!s||!s.hours[dk])return true;
+  if(bk&&s.offBlocks&&s.offBlocks[dk]&&s.offBlocks[dk].indexOf(bk)>=0)return true;
+  return false;
+}
+
+// ── RTE helpers ───────────────────────────────────────────────
+function rFmt(cmd,id){var el=document.getElementById(id);if(el){el.focus();document.execCommand(cmd,false,null);}}
+function rSize(size,id){var el=document.getElementById(id);if(el){el.focus();document.execCommand('fontSize',false,size);}}
+function rColor(color,id){var el=document.getElementById(id);if(el){el.focus();document.execCommand('foreColor',false,color);}}
+function rGet(id){var el=document.getElementById(id);return el?el.innerHTML:'';}
+function rSet(id,val){var el=document.getElementById(id);if(el)el.innerHTML=val||'';}
+
+// Paste handler — strips ALL formatting and spreadsheet formulas
+document.addEventListener('paste',function(e){
+  var t=e.target;
+  if(!t||t.getAttribute('contenteditable')!=='true')return;
+  e.preventDefault();
+  var txt=(e.clipboardData||window.clipboardData).getData('text/plain');
+  txt=txt.split(/\r?\n/).map(function(line){
+    return line.split('\t').map(function(cell){
+      return cell.replace(/^=.*$/,'').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'').trim();
+    }).filter(Boolean).join(', ');
+  }).filter(Boolean).join(', ').trim();
+  var sel=window.getSelection();
+  if(!sel.rangeCount)return;
+  sel.deleteFromDocument();
+  sel.getRangeAt(0).insertNode(document.createTextNode(txt));
+  sel.collapseToEnd();
+},true);
+
+// ── Colour picker in block edit modal ────────────────────────
+function pickBlkCol(btn){
+  document.querySelectorAll('.blk-col-btn').forEach(function(b){b.classList.remove('blk-col-picked');});
+  btn.classList.add('blk-col-picked');
+}
+
+// Override openBlockEdit to use RTE fields + colour picker
+function openBlockEdit(sn,dk,bk){
+  if(!editMode||!isAdmin)return;
+  currentEditCell={sn:sn,dk:dk,bk:bk};
+  var s=staff.find(function(x){return x.name===sn;});
+  var cell=(s&&s.schedule&&s.schedule[dk]&&s.schedule[dk][bk])||{};
+  document.getElementById('modalTitle').textContent='Edit: '+sn+' — '+dk+' Block '+bk.replace('b','');
+  rSet('rte-prog',cell.prog||'');
+  rSet('rte-room',cell.room||'');
+  rSet('rte-students',cell.students||'');
+  var curCol=colorOverrides[ovKey(sn,dk,bk)]||'';
+  document.querySelectorAll('.blk-col-btn').forEach(function(btn){
+    btn.classList.toggle('blk-col-picked',btn.getAttribute('data-col')===curCol);
+  });
+  document.getElementById('blockModal').style.display='flex';
+}
+
+// Override saveBlock to use RTE fields + save colour
+function saveBlock(){
+  if(!currentEditCell||!isAdmin)return;
+  var sn=currentEditCell.sn,dk=currentEditCell.dk,bk=currentEditCell.bk;
+  var s=staff.find(function(x){return x.name===sn;});
+  if(!s.schedule[dk])s.schedule[dk]={};
+  s.schedule[dk][bk]={prog:rGet('rte-prog'),room:rGet('rte-room'),students:rGet('rte-students')};
+  var selBtn=document.querySelector('#blkColPicker .blk-col-btn.blk-col-picked');
+  var colVal=selBtn?selBtn.getAttribute('data-col'):'';
+  var ok=ovKey(sn,dk,bk);
+  if(colVal){colorOverrides[ok]=colVal;}else{delete colorOverrides[ok];}
+  saveColorOverrides();
+  closeModal('blockModal');autoSave();renderAll();
+}
+
+// Override clearBlock to also clear colour
+function clearBlock(){
+  if(!currentEditCell||!isAdmin)return;
+  var sn=currentEditCell.sn,dk=currentEditCell.dk,bk=currentEditCell.bk;
+  var s=staff.find(function(x){return x.name===sn;});
+  if(s&&s.schedule&&s.schedule[dk])s.schedule[dk][bk]={prog:'',room:'',students:''};
+  rSet('rte-prog','');rSet('rte-room','');rSet('rte-students','');
+  delete colorOverrides[ovKey(sn,dk,bk)];
+  saveColorOverrides();
+  closeModal('blockModal');autoSave();renderAll();
+}
+
+// ── Draft / Publish system ────────────────────────────────────
+function loadDraft(){
+  try{draftState=JSON.parse(localStorage.getItem('draftState')||'null');}catch(e){draftState=null;}
+  try{draftData=JSON.parse(localStorage.getItem('draftData')||'null');}catch(e){draftData=null;}
+}
+function saveDraftMeta(){
+  try{localStorage.setItem('draftState',JSON.stringify(draftState));localStorage.setItem('draftData',JSON.stringify(draftData));}catch(e){}
+}
+function nextMon(dateStr){var d=new Date(dateStr);d.setDate(d.getDate()+7);return d.toISOString().split('T')[0];}
+function startDraft(){
+  if(!isAdmin)return;
+  if(draftState==='editing'&&!confirm('A draft already exists. Replace it with a copy of the current timetable?'))return;
+  var ws=document.getElementById('weekStart').value;
+  var nws=nextMon(ws);
+  var nwe=new Date(nws);nwe.setDate(nwe.getDate()+4);
+  var nweStr=nwe.toISOString().split('T')[0];
+  // Carry forward leave that overlaps with new week
+  var nwsD=new Date(nws),nweD=new Date(nweStr);nweD.setHours(23,59,59,999);
+  var carryLeave=leaveBookings.filter(function(l){
+    var f=new Date(l.from),t=new Date(l.to);t.setHours(23,59,59,999);
+    return t>=nwsD&&f<=nweD;
+  });
+  var carryPH=publicHolidays.filter(function(h){
+    var d=new Date(h.date);d.setHours(12,0,0,0);
+    return d>=nwsD&&d<=nweD;
+  });
+  draftData={
+    staff:JSON.parse(JSON.stringify(staff)),
+    keyStudents:JSON.parse(JSON.stringify(keyStudents)),
+    danielSchedule:JSON.parse(JSON.stringify(danielSchedule)),
+    calebSchedule:JSON.parse(JSON.stringify(calebSchedule)),
+    gabrielleSchedule:JSON.parse(JSON.stringify(gabrielleSchedule)),
+    ilSpaceRoster:JSON.parse(JSON.stringify(ilSpaceRoster)),
+    colorOverrides:JSON.parse(JSON.stringify(colorOverrides)),
+    messages:{allStaff:{text:'',sentBy:'',sentAt:''},personal:{}},
+    leaveBookings:JSON.parse(JSON.stringify(carryLeave)),
+    publicHolidays:JSON.parse(JSON.stringify(carryPH)),
+    coverAssignments:[],studentAbsences:[],
+    weekMeta:{ws:nws,we:nweStr,t:document.getElementById('termNum').value,w:String(parseInt(document.getElementById('weekNum').value)+1)},
+    createdAt:new Date().toLocaleString('en-NZ'),createdBy:currentUser
+  };
+  draftState='editing';saveDraftMeta();viewingDraft=true;
+  applyDraft();updateDraftUI();renderAll();
+  alert('✓ Draft created for next week! Staff still see the live timetable.');
+}
+function applyDraft(){
+  if(!draftData)return;
+  staff=JSON.parse(JSON.stringify(draftData.staff));
+  keyStudents=JSON.parse(JSON.stringify(draftData.keyStudents));
+  danielSchedule=JSON.parse(JSON.stringify(draftData.danielSchedule||DEF_DANIEL));
+  calebSchedule=JSON.parse(JSON.stringify(draftData.calebSchedule||DEF_CALEB));
+  gabrielleSchedule=JSON.parse(JSON.stringify(draftData.gabrielleSchedule||DEF_GAB));
+  ilSpaceRoster=JSON.parse(JSON.stringify(draftData.ilSpaceRoster||DEFAULT_ILS));
+  colorOverrides=JSON.parse(JSON.stringify(draftData.colorOverrides||{}));
+  leaveBookings=JSON.parse(JSON.stringify(draftData.leaveBookings||[]));
+  publicHolidays=JSON.parse(JSON.stringify(draftData.publicHolidays||[]));
+  coverAssignments=JSON.parse(JSON.stringify(draftData.coverAssignments||[]));
+  studentAbsences=JSON.parse(JSON.stringify(draftData.studentAbsences||[]));
+  messages=JSON.parse(JSON.stringify(draftData.messages||{allStaff:{text:'',sentBy:'',sentAt:''},personal:{}}));
+  if(draftData.weekMeta){
+    document.getElementById('weekStart').value=draftData.weekMeta.ws;
+    document.getElementById('weekEnd').value=draftData.weekMeta.we;
+    document.getElementById('termNum').value=draftData.weekMeta.t;
+    document.getElementById('weekNum').value=draftData.weekMeta.w;
+    updateWeekLabel();
+  }
+  staff.forEach(ensureSchedule);
+}
+function restoreLive(){
+  try{staff=JSON.parse(localStorage.getItem('staff')||'null')||JSON.parse(JSON.stringify(DEFAULT_STAFF));}catch(e){staff=JSON.parse(JSON.stringify(DEFAULT_STAFF));}
+  try{keyStudents=JSON.parse(localStorage.getItem('keyStudents')||'null')||JSON.parse(JSON.stringify(DEFAULT_KEY_STUDENTS));}catch(e){keyStudents=JSON.parse(JSON.stringify(DEFAULT_KEY_STUDENTS));}
+  try{danielSchedule=JSON.parse(localStorage.getItem('danielSchedule')||'null')||JSON.parse(JSON.stringify(DEF_DANIEL));}catch(e){danielSchedule=JSON.parse(JSON.stringify(DEF_DANIEL));}
+  try{calebSchedule=JSON.parse(localStorage.getItem('calebSchedule')||'null')||JSON.parse(JSON.stringify(DEF_CALEB));}catch(e){calebSchedule=JSON.parse(JSON.stringify(DEF_CALEB));}
+  try{gabrielleSchedule=JSON.parse(localStorage.getItem('gabrielleSchedule')||'null')||JSON.parse(JSON.stringify(DEF_GAB));}catch(e){gabrielleSchedule=JSON.parse(JSON.stringify(DEF_GAB));}
+  try{ilSpaceRoster=JSON.parse(localStorage.getItem('ilSpaceRoster')||'null')||JSON.parse(JSON.stringify(DEFAULT_ILS));}catch(e){ilSpaceRoster=JSON.parse(JSON.stringify(DEFAULT_ILS));}
+  try{colorOverrides=JSON.parse(localStorage.getItem('colorOverrides')||'{}');}catch(e){colorOverrides={};}
+  try{leaveBookings=JSON.parse(localStorage.getItem('leaveBookings')||'null')||[];}catch(e){leaveBookings=[];}
+  try{publicHolidays=JSON.parse(localStorage.getItem('publicHolidays')||'null')||[];}catch(e){publicHolidays=[];}
+  try{coverAssignments=JSON.parse(localStorage.getItem('coverAssignments')||'null')||[];}catch(e){coverAssignments=[];}
+  try{studentAbsences=JSON.parse(localStorage.getItem('studentAbsences')||'null')||[];}catch(e){studentAbsences=[];}
+  try{messages=JSON.parse(localStorage.getItem('messages')||'null')||{allStaff:{text:'',sentBy:'',sentAt:''},personal:{}};}catch(e){messages={allStaff:{text:'',sentBy:'',sentAt:''},personal:{}};}
+  staff.forEach(ensureSchedule);
+  var sm=null;try{sm=JSON.parse(localStorage.getItem('weekMeta')||'null');}catch(e){}
+  if(sm){
+    document.getElementById('weekStart').value=sm.weekStart||'2026-05-11';
+    document.getElementById('weekEnd').value=sm.weekEnd||'2026-05-15';
+    document.getElementById('termNum').value=sm.termNum||'2';
+    document.getElementById('weekNum').value=sm.weekNum||'5';
+    updateWeekLabel();
+  }
+}
+function toggleDraftView(){
+  if(!isAdmin||!draftData)return;
+  viewingDraft=!viewingDraft;
+  if(viewingDraft)applyDraft();else restoreLive();
+  updateDraftUI();renderAll();
+}
+function publishDraft(){
+  if(!isAdmin||!draftData)return;
+  if(!confirm('Publish this draft? The current timetable will be archived first, then the draft goes live for all staff.'))return;
+  archiveCurrentWeek();
+  applyDraft();autoSave();
+  draftState=null;draftData=null;viewingDraft=false;saveDraftMeta();
+  updateDraftUI();renderAll();
+  alert('✅ Draft published! Staff can now see the new timetable.');
+}
+function discardDraft(){
+  if(!isAdmin)return;
+  if(!confirm('Discard this draft? All draft changes will be lost.'))return;
+  draftState=null;draftData=null;viewingDraft=false;saveDraftMeta();
+  restoreLive();updateDraftUI();renderAll();
+  alert('Draft discarded.');
+}
+function syncDraft(){
+  if(!isAdmin||!viewingDraft||!draftData)return;
+  draftData.staff=JSON.parse(JSON.stringify(staff));
+  draftData.keyStudents=JSON.parse(JSON.stringify(keyStudents));
+  draftData.danielSchedule=JSON.parse(JSON.stringify(danielSchedule));
+  draftData.calebSchedule=JSON.parse(JSON.stringify(calebSchedule));
+  draftData.gabrielleSchedule=JSON.parse(JSON.stringify(gabrielleSchedule));
+  draftData.ilSpaceRoster=JSON.parse(JSON.stringify(ilSpaceRoster));
+  draftData.colorOverrides=JSON.parse(JSON.stringify(colorOverrides));
+  draftData.leaveBookings=JSON.parse(JSON.stringify(leaveBookings));
+  draftData.publicHolidays=JSON.parse(JSON.stringify(publicHolidays));
+  draftData.coverAssignments=JSON.parse(JSON.stringify(coverAssignments));
+  draftData.studentAbsences=JSON.parse(JSON.stringify(studentAbsences));
+  draftData.messages=JSON.parse(JSON.stringify(messages));
+  draftData.weekMeta={ws:document.getElementById('weekStart').value,we:document.getElementById('weekEnd').value,t:document.getElementById('termNum').value,w:document.getElementById('weekNum').value};
+  saveDraftMeta();
+}
+function updateDraftUI(){
+  var db=document.getElementById('draftBanner'),lb=document.getElementById('liveBanner');
+  var nb=document.getElementById('newDraftBtn'),sb=document.getElementById('switchBtn');
+  function hide(el){if(el)el.style.display='none';}
+  function show(el,d){if(el)el.style.display=d||'flex';}
+  if(!isAdmin){hide(db);hide(lb);hide(nb);hide(sb);return;}
+  if(draftState==='editing'){
+    if(viewingDraft){
+      show(db);hide(lb);
+      var sub=document.getElementById('draftSub');
+      if(sub&&draftData)sub.textContent='Created '+draftData.createdAt+' · Staff still see LIVE timetable · Week of '+draftData.weekMeta.ws;
+      if(sb){show(sb,'inline-block');sb.textContent='👁 View live timetable';}
+      hide(nb);
+    } else {
+      hide(db);show(lb);
+      var lsub=document.getElementById('liveSub');
+      if(lsub)lsub.textContent='✅ LIVE — Draft exists for next week';
+      if(sb){show(sb,'inline-block');sb.textContent='📝 Switch to draft';}
+      hide(nb);
+    }
+  } else {
+    hide(db);hide(lb);
+    if(nb){show(nb,'inline-block');}
+    hide(sb);
+  }
+}
+
+// ── All Students line register ────────────────────────────────
+var LINE_CFG={
+  green:{label:'Line 3',color:'#4CAF50',text:'#fff',cls:'lsec-g',blocks:['Mon-b1','Tue-b1','Fri-b3']},
+  blue:{label:'Line 1 & 2',color:'#2196F3',text:'#fff',cls:'lsec-b',blocks:['Mon-b2','Tue-b2','Thu-b3','Fri-b2']},
+  yellow:{label:'Line 5',color:'#FFC107',text:'#333',cls:'lsec-y',blocks:['Mon-b3','Thu-b2']},
+  red:{label:'Line 4',color:'#F44336',text:'#fff',cls:'lsec-r',blocks:['Tue-b3','Thu-b1','Fri-b1']}
+};
+function loadLineStudents(){
+  try{var d=JSON.parse(localStorage.getItem('lineStudents')||'null');if(d){lineStudents=d;['green','blue','yellow','red'].forEach(function(k){if(!lineStudents[k])lineStudents[k]=[];});}}catch(e){}
+}
+function saveLineStudents(){try{localStorage.setItem('lineStudents',JSON.stringify(lineStudents));}catch(e){}}
+function addLineStudents(){
+  if(!isAdmin)return;
+  var line=document.getElementById('newStudLine').value;
+  var raw=document.getElementById('newStudNames').value;
+  var names=raw.split(/\n|,/).map(function(n){return n.trim();}).filter(Boolean);
+  if(!names.length){alert('Please enter at least one name.');return;}
+  names.forEach(function(name){if(lineStudents[line].indexOf(name)<0)lineStudents[line].push(name);});
+  saveLineStudents();document.getElementById('newStudNames').value='';renderAllStudents();
+}
+function removeLineStu(btn){
+  if(!isAdmin)return;
+  var line=btn.getAttribute('data-line'),idx=parseInt(btn.getAttribute('data-idx'));
+  if(!confirm('Remove '+lineStudents[line][idx]+'?'))return;
+  lineStudents[line].splice(idx,1);saveLineStudents();renderAllStudents();
+}
+function getStuInBlock(dk,bk){
+  var names=[];
+  staff.forEach(function(s){
+    var cell=s.schedule&&s.schedule[dk]&&s.schedule[dk][bk];
+    if(cell&&cell.students){
+      var plain=cell.students.replace(/<[^>]+>/g,'');
+      plain.split(',').forEach(function(n){var t=n.trim();if(t)names.push(t.toLowerCase());});
+    }
+  });
+  return names;
+}
+function stuCovered(name,covArr){
+  var lc=name.toLowerCase().trim();
+  var parts=lc.split(/\s+/);
+  for(var i=0;i<covArr.length;i++){
+    var c=covArr[i];
+    if(c.indexOf(lc)>=0)return true;
+    for(var j=0;j<parts.length;j++){if(parts[j].length>2&&c.indexOf(parts[j])>=0)return true;}
+  }
+  return false;
+}
+function renderAllStudents(){
+  var addW=document.getElementById('addStudWrap');if(addW)addW.style.display=isAdmin?'block':'none';
+  var sumEl=document.getElementById('uncovSummary');var sumHtml='';var anyUnc=false;
+  Object.keys(LINE_CFG).forEach(function(lk){
+    var cfg=LINE_CFG[lk];var stus=lineStudents[lk]||[];if(!stus.length)return;
+    var unc=[];
+    stus.forEach(function(name){
+      var missing=cfg.blocks.filter(function(b){var p=b.split('-');return!stuCovered(name,getStuInBlock(p[0],p[1]));});
+      if(missing.length){anyUnc=true;unc.push({name:name,ml:missing.map(function(b){var p=b.split('-');return p[0]+' B'+p[1].replace('b','');}).join(', ')});}
+    });
+    if(unc.length){sumHtml+='<div class="unc-alert"><div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:5px">⚠️ Not covered — <span style="display:inline-block;background:'+cfg.color+';color:'+cfg.text+';padding:1px 7px;border-radius:20px;font-size:10px">'+cfg.label+'</span></div>'+unc.map(function(i){return'<div class="unc-item"><span style="font-weight:700;min-width:140px">'+i.name+'</span><span style="color:#dc2626">Missing: '+i.ml+'</span></div>';}).join('')+'</div>';}
+  });
+  if(!anyUnc&&Object.keys(lineStudents).some(function(k){return lineStudents[k].length>0;}))sumHtml='<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:7px;padding:9px 13px;margin-bottom:9px;font-family:system-ui;font-size:11px;color:#166534;font-weight:600">✅ All registered students appear to be covered this week!</div>';
+  if(sumEl)sumEl.innerHTML=sumHtml;
+  var secEl=document.getElementById('lineSections');if(!secEl)return;
+  var html='';
+  Object.keys(LINE_CFG).forEach(function(lk){
+    var cfg=LINE_CFG[lk];var stus=lineStudents[lk]||[];
+    var bls=cfg.blocks.map(function(b){var p=b.split('-');return{key:b,label:p[0]+' B'+p[1].replace('b','')};});
+    var dotColor=cfg.color==='#FFC107'?'#78350f':cfg.color;
+    html+='<div class="lsec '+cfg.cls+'"><div class="lhdr"><div class="ldot" style="background:'+cfg.color+'"></div><div class="ltitle" style="color:'+dotColor+'">'+cfg.label+'</div><div style="font-size:10px;color:#555;flex:1;font-family:system-ui">Blocks: '+bls.map(function(b){return b.label;}).join(', ')+'</div><span style="font-size:10px;font-weight:600;color:#555;font-family:system-ui">'+stus.length+' student'+(stus.length!==1?'s':'')+'</span></div>';
+    if(!stus.length){html+='<div style="font-size:11px;color:#9ca3af;font-family:system-ui;padding:3px 0">No students registered yet.'+(isAdmin?' Use the form above to add students.':'')+'</div>';}
+    else{
+      html+='<div style="display:grid;grid-template-columns:1fr '+bls.map(function(){return'auto';}).join(' ')+(isAdmin?' auto':'')+';gap:5px;align-items:center;padding:3px 9px;font-size:9px;font-weight:700;color:#555;font-family:system-ui"><div>Student</div>'+bls.map(function(b){return'<div style="text-align:center">'+b.label+'</div>';}).join('')+(isAdmin?'<div></div>':'')+'</div>';
+      stus.forEach(function(name,idx){
+        var covArr=cfg.blocks.map(function(b){var p=b.split('-');return{key:b,cov:stuCovered(name,getStuInBlock(p[0],p[1]))};});
+        var allC=covArr.every(function(x){return x.cov;});var noneC=covArr.every(function(x){return!x.cov;});
+        var rc=noneC?'srow-unc':allC?'srow-cov':'srow-par';var dc=noneC?'dot-u':allC?'dot-c':'dot-p';
+        html+='<div class="srow '+rc+'" style="display:grid;grid-template-columns:1fr '+bls.map(function(){return'auto';}).join(' ')+(isAdmin?' auto':'')+';gap:5px;align-items:center">';
+        html+='<div style="display:flex;align-items:center;gap:5px"><div class="covdot '+dc+'"></div><span style="font-weight:600;font-size:11px">'+name+'</span>'+(noneC?'<span style="font-size:8px;background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:20px;font-family:system-ui;font-weight:700">⚠ Not covered</span>':(!allC?'<span style="font-size:8px;background:#fef3c7;color:#78350f;padding:1px 5px;border-radius:20px;font-family:system-ui;font-weight:700">⚠ Partial</span>':''))+'</div>';
+        html+=covArr.map(function(x){return'<div style="text-align:center;font-size:13px">'+(x.cov?'✅':'❌')+'</div>';}).join('');
+        if(isAdmin)html+='<div><button class="del-btn" data-line="'+lk+'" data-idx="'+idx+'" onclick="removeLineStu(this)">✕</button></div>';
+        html+='</div>';
+      });
+    }
+    html+='</div>';
+  });
+  secEl.innerHTML=html;
+}
+
+
+
+const COLOR_GROUPS={
+  'Mon-b1':['Mon-b1','Tue-b1','Fri-b3'],
+  'Tue-b1':['Mon-b1','Tue-b1','Fri-b3'],
+  'Fri-b3':['Mon-b1','Tue-b1','Fri-b3'],
+  'Mon-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Tue-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Thu-b3':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Fri-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Mon-b3':['Mon-b3','Thu-b2'],
+  'Thu-b2':['Mon-b3','Thu-b2'],
+  'Tue-b3':['Tue-b3','Thu-b1','Fri-b1'],
+  'Thu-b1':['Tue-b3','Thu-b1','Fri-b1'],
+  'Fri-b1':['Tue-b3','Thu-b1','Fri-b1'],
+  'Wed-b1':['Wed-b1','Wed-b2','Wed-b3'],
+  'Wed-b2':['Wed-b1','Wed-b2','Wed-b3'],
+  'Wed-b3':['Wed-b1','Wed-b2','Wed-b3'],
+};
+const COLOR_NAMES={
+  'Mon-b1':'🟢 Green (Line 3)','Tue-b1':'🟢 Green (Line 3)','Fri-b3':'🟢 Green (Line 3)',
+  'Mon-b2':'🔵 Blue (Line 1&2)','Tue-b2':'🔵 Blue (Line 1&2)','Thu-b3':'🔵 Blue (Line 1&2)','Fri-b2':'🔵 Blue (Line 1&2)',
+  'Mon-b3':'🟡 Yellow (Line 5)','Thu-b2':'🟡 Yellow (Line 5)',
+  'Tue-b3':'🔴 Red (Line 4)','Thu-b1':'🔴 Red (Line 4)','Fri-b1':'🔴 Red (Line 4)',
+  'Wed-b1':'🟣 Purple','Wed-b2':'🟣 Purple','Wed-b3':'🟣 Purple',
+};
+
+
+function copyToGroup(){
+  if(!currentEditCell||!isAdmin)return;
+  var sn=currentEditCell.sn,dk=currentEditCell.dk,bk=currentEditCell.bk;
+  var groupKey=dk+'-'+bk;
+  var grp=COLOR_GROUPS[groupKey];
+  var colName=COLOR_NAMES[groupKey]||'these';
+  if(!grp||grp.length<=1)return;
+  var np=rGet('rte-prog'),nr=rGet('rte-room'),ns=rGet('rte-students');
+  var selBtn=document.querySelector('#blkColPicker .blk-col-btn.blk-col-picked');
+  var colVal=selBtn?selBtn.getAttribute('data-col'):'';
+  var s=staff.find(function(x){return x.name===sn;});
+  if(!s)return;
+  // Check for existing content in other blocks of the group
+  var others=grp.filter(function(k){return k!==groupKey;});
+  var hasCont=others.filter(function(k){
+    var p=k.split('-');var c=s.schedule&&s.schedule[p[0]]&&s.schedule[p[0]][p[1]];
+    return c&&(c.prog||c.room||c.students);
+  });
+  if(hasCont.length){
+    var labels=hasCont.map(function(k){var p=k.split('-');return p[0]+' B'+p[1].replace('b','');}).join(', ');
+    if(!confirm('These '+colName+' blocks already have content:\n\n'+labels+'\n\nOverwrite them?'))return;
+  }
+  // Copy to all blocks in group
+  grp.forEach(function(k){
+    var p=k.split('-'),d=p[0],bl=p[1];
+    if(!s.schedule[d])s.schedule[d]={};
+    s.schedule[d][bl]={prog:np,room:nr,students:ns};
+    if(colVal){colorOverrides[ovKey(sn,d,bl)]=colVal;}else{delete colorOverrides[ovKey(sn,d,bl)];}
+  });
+  saveColorOverrides();
+  closeModal('blockModal');autoSave();renderAll();
+  alert('✓ Copied to all '+colName+' blocks!');
+}
+</script>
+</body>
+</html>
