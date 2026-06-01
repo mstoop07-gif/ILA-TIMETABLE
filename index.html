@@ -471,6 +471,34 @@ var colorOverrides={};
 var lineStudents={green:[],blue:[],yellow:[],red:[]};
 var draftState=null,draftData=null,viewingDraft=false;
 
+const COLOR_GROUPS={
+  'Mon-b1':['Mon-b1','Tue-b1','Fri-b3'],
+  'Tue-b1':['Mon-b1','Tue-b1','Fri-b3'],
+  'Fri-b3':['Mon-b1','Tue-b1','Fri-b3'],
+  'Mon-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Tue-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Thu-b3':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Fri-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
+  'Mon-b3':['Mon-b3','Thu-b2'],
+  'Thu-b2':['Mon-b3','Thu-b2'],
+  'Tue-b3':['Tue-b3','Thu-b1','Fri-b1'],
+  'Thu-b1':['Tue-b3','Thu-b1','Fri-b1'],
+  'Fri-b1':['Tue-b3','Thu-b1','Fri-b1'],
+  'Wed-b1':['Wed-b1','Wed-b2','Wed-b3'],
+  'Wed-b2':['Wed-b1','Wed-b2','Wed-b3'],
+  'Wed-b3':['Wed-b1','Wed-b2','Wed-b3'],
+};
+
+const COLOR_NAMES={
+  'Mon-b1':'🟢 Green (Line 3)','Tue-b1':'🟢 Green (Line 3)','Fri-b3':'🟢 Green (Line 3)',
+  'Mon-b2':'🔵 Blue (Line 1&2)','Tue-b2':'🔵 Blue (Line 1&2)','Thu-b3':'🔵 Blue (Line 1&2)','Fri-b2':'🔵 Blue (Line 1&2)',
+  'Mon-b3':'🟡 Yellow (Line 5)','Thu-b2':'🟡 Yellow (Line 5)',
+  'Tue-b3':'🔴 Red (Line 4)','Thu-b1':'🔴 Red (Line 4)','Fri-b1':'🔴 Red (Line 4)',
+  'Wed-b1':'🟣 Purple','Wed-b2':'🟣 Purple','Wed-b3':'🟣 Purple',
+};
+var lineStudents={green:[],blue:[],yellow:[],red:[]};
+var draftState=null,draftData=null,viewingDraft=false;
+
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday'];
 const DK=['Mon','Tue','Wed','Thu','Fri'];
 const BCLS={Mon:{b1:'Mon-b1',b2:'Mon-b2',b3:'Mon-b3'},Tue:{b1:'Tue-b1',b2:'Tue-b2',b3:'Tue-b3'},Wed:{b1:'Wed-b1',b2:'Wed-b2',b3:'Wed-b3'},Thu:{b1:'Thu-b1',b2:'Thu-b2',b3:'Thu-b3'},Fri:{b1:'Fri-b1',b2:'Fri-b2',b3:'Fri-b3'}};
@@ -577,7 +605,7 @@ function saveBlock(){
   var sn=currentEditCell.sn,dk=currentEditCell.dk,bk=currentEditCell.bk;
   var s=staff.find(function(x){return x.name===sn;});
   if(!s.schedule[dk])s.schedule[dk]={};
-  s.schedule[dk][bk]={prog:rGet('rte-prog'),room:rGet('rte-room'),students:rGet('rte-students')};
+  s.schedule[dk][bk]={prog:rGet('rte-prog'),room:rGet('rte-room'),students:rGetPlain('rte-students')};
   var selBtn=document.querySelector('#blkColPicker .blk-col-btn.blk-col-picked');
   var colVal=selBtn?selBtn.getAttribute('data-col'):'';
   var ok=ovKey(sn,dk,bk);
@@ -687,7 +715,7 @@ function renderStudentEditList(){const el=document.getElementById('studentEditLi
 function updateCount(){const lc=staff.filter(s=>staffHasLeaveThisWeek(s.name)).length,mc=absentStaff.size,phc=getActivePHDays().size,sa=studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='active').length;const up=leaveBookings.filter(l=>bookingStatus(l.from,l.to)==='upcoming').length+studentAbsences.filter(a=>bookingStatus(a.from,a.to)==='upcoming').length+publicHolidays.filter(h=>phStatus(h.date)==='upcoming').length;const totalMsgs=(messages.allStaff?.text?1:0)+Object.values(messages.personal||{}).filter(m=>m.text).length;let b='';if(phc)b+=`<span class="badge badge-ph">🏫 ${phc} PH</span> `;if(lc)b+=`<span class="badge badge-leave">${lc} on leave</span> `;if(mc)b+=`<span class="badge badge-absent">${mc} absent</span> `;if(sa)b+=`<span class="badge badge-away">🎒 ${sa} away</span> `;if(up>0)b+=`<span class="badge badge-upcoming">📌 ${up} upcoming</span> `;if(totalMsgs)b+=`<span class="badge" style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5">📢 ${totalMsgs} msg${totalMsgs>1?'s':''}</span>`;document.getElementById('absenceCount').innerHTML=b;}
 const DEFAULT_STAFF=[
 {name:'Andrea Hall',hours:{Mon:'9.00–3.00pm',Tue:'9.00–3.15pm',Wed:'9.30–3.15pm',Thu:'9.00–3.00pm',Fri:'9.00–3.15pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'EXELL TMTBO'},b2:{prog:'Planning'},b3:{prog:'Planning'}},Tue:{b1:{prog:'EXELL TMTBO'},b2:{prog:'CRIM (RKE/SPE) TTU1/TTU2',students:'Bajwa Simranjit'},b3:{prog:'EXELL',students:'Al Ahmad Khalaf, Al Ahmad Mariam, Hakimi Mahdia'}},Wed:{b1:{prog:'EXELL TMTBO'},b2:{prog:'ELL',room:'with Auroshri'},b3:{prog:'ELL',room:'with Elizabeth'}},Thu:{b1:{prog:'EXELL TMTBO'},b2:{prog:'Planning'},b3:{prog:'CRIM (RKE/SPE) TTU1/TTU2',students:'Bajwa Simranjit'}},Fri:{b1:{prog:'ELL Support',room:'with Auroshri'},b2:{prog:'CRIM (RKE/SPE) TTU1/TTU2',students:'Bajwa Simranjit'},b3:{prog:'EXELL MPUBO'}}}},
-{name:'Arzoo Noori',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'9.30–3.00pm',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'EXHUM (NSH) PWH'}},Tue:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXHUM (HAR) MPU2'}},Wed:{b1:{prog:'EXART (SDU) TNK'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'SAC-FAST(SLA) TMT6/7'}},Thu:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'EXNUM (NSH) PWH'},b3:{prog:'PLAGUE (JCG/HAR) TPU/TNK'}},Fri:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXNUM / EXART'}}}},
+{name:'Arzoo Noori',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'EXHUM (NSH) PWH'}},Tue:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXHUM (HAR) MPU2'}},Wed:{b1:{prog:'EXART (SDU) TNK'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'SAC-FAST(SLA) TMT6/7'}},Thu:{b1:{prog:'SAC-SNUM (RPU) POU2'},b2:{prog:'EXNUM (NSH) PWH'},b3:{prog:'PLAGUE (JCG/HAR) TPU/TNK'}},Fri:{b1:{prog:'EXNUM (MBN) POU3'},b2:{prog:'PLAGUE (JCG/HAR) TPU/TNK'},b3:{prog:'EXNUM / EXART'}}}},
 {name:'Auroshri Jain',hours:{Mon:'8.30–3.00pm',Tue:'8.30–3.00pm',Wed:'9.30–3.00pm',Thu:'8.30–3.00pm',Fri:'8.30–3.00pm'},wh:{Mon:'Kobe',Tue:'Kobe',Wed:'Classes start 10am',Thu:'Kobe',Fri:'Kobe'},schedule:{Mon:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Elizabeth',students:'Fenn Riley'},b2:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Mokoia',students:'Trevathan Larry'},b3:{prog:'EXLIT (MMN) TAN1'}},Tue:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Elizabeth',students:'Fenn Riley'},b2:{prog:'Kobe'},b3:{prog:'EXLIT (SDA) TAN2'}},Wed:{b1:{prog:'EXEMP (JFE) TTU3',room:'with Josh',students:'Bajwa Simranjit'},b2:{prog:'MSLS (JOA) TPO1',students:'Singh Ritvik'},b3:{prog:'EXEMP (JFE) TTU3',room:'with Josh'}},Thu:{b1:{prog:'EXEMP (JFE) TTU3',room:'with Josh',students:'Singh Ritvik'},b2:{prog:'BOOST1 TRH'},b3:{prog:'ADLSNCE (KBL/LLA) TPI1/TPI2',room:'with Mokoia'}},Fri:{b1:{prog:'ELL Support',room:'with Andrea'},b2:{prog:'Kobe backup'},b3:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Elizabeth',students:'Fenn Riley'}}}},
 {name:'Christina John',hours:{Mon:'9.30–3.00pm',Tue:'9.30–3.00pm',Wed:'',Thu:'9.30–3.00pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'Classes start 10am',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'MMED (TRH) MMN',students:'Wackrow Cian'},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'EXCUL (GMC) MKA1/MKA2',students:'Walker Caleb, Al Ahmad Mariam, Schonberger Skyla'}},Tue:{b1:{prog:'MMED (TRH) MMN',students:'Wackrow Cian'},b2:{prog:'J PARK (SWN/GWH) TMT1'},b3:{prog:'EXART (MIE) TNK',room:'with Jan'}},Wed:{b1:{prog:'EXART (MIE) TNK',room:'with Jan'},b2:{prog:'J PARK (SWN/GWH) TMT1'},b3:{prog:'SAC-FAST(SLA) TMT6/7'}},Thu:{b1:{prog:'EXART (MIE) TNK'},b2:{prog:'EXCUL (GMC) MKA1/MKA2',students:'Walker Caleb, Al Ahmad Mariam'},b3:{prog:'J PARK (SWN/GWH) TMT1'}},Fri:{b1:{prog:''},b2:{prog:'SAC-FAST(SLA) TMT6/7'},b3:{prog:'MMED (TRH) MMN',students:'Wackrow Cian'}}}},
 {name:"Elizabeth Ng'onomo",hours:{Mon:'9.30–3.00pm',Tue:'8.30–3.00pm',Wed:'EOTC',Thu:'9.30–3.15pm',Fri:'9.30–3.00pm'},wh:{Mon:'WH',Tue:'WH',Wed:'EOTC',Thu:'WH',Fri:'WH'},schedule:{Mon:{b1:{prog:'SPTG (JCG) TPU'},b2:{prog:'BOOST1 TRH',room:'with Lara'},b3:{prog:'Planning'}},Tue:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Auroshri',students:'Fenn Riley'},b2:{prog:'BOOST1 TRH',room:'with Lara'},b3:{prog:'SELL TWKKAI'}},Wed:{b1:{prog:'EOTC'},b2:{prog:'EOTC'},b3:{prog:'EOTC'}},Thu:{b1:{prog:'SHOSP (GMC) MKA1/HKA',room:'with Auroshri',students:'Fenn Riley'},b2:{prog:'Planning'},b3:{prog:'ELL',room:'with Andrea'}},Fri:{b1:{prog:'SELL TWKKAI'},b2:{prog:'BOOST1 TRH',room:'with Lara'},b3:{prog:'EXIL-TPI3',students:'Liu Andrew'}}}},
@@ -787,6 +815,7 @@ function rFmt(cmd,id){var el=document.getElementById(id);if(el){el.focus();docum
 function rSize(size,id){var el=document.getElementById(id);if(el){el.focus();document.execCommand('fontSize',false,size);}}
 function rColor(color,id){var el=document.getElementById(id);if(el){el.focus();document.execCommand('foreColor',false,color);}}
 function rGet(id){var el=document.getElementById(id);return el?el.innerHTML:'';}
+function rGetPlain(id){var el=document.getElementById(id);if(!el)return '';return el.innerText||el.textContent||'';}
 function rSet(id,val){var el=document.getElementById(id);if(el)el.innerHTML=val||'';}
 
 // Paste handler — strips ALL formatting and spreadsheet formulas
@@ -795,11 +824,17 @@ document.addEventListener('paste',function(e){
   if(!t||t.getAttribute('contenteditable')!=='true')return;
   e.preventDefault();
   var txt=(e.clipboardData||window.clipboardData).getData('text/plain');
-  txt=txt.split(/\r?\n/).map(function(line){
-    return line.split('\t').map(function(cell){
-      return cell.replace(/^=.*$/,'').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,'').trim();
-    }).filter(Boolean).join(', ');
-  }).filter(Boolean).join(', ').trim();
+  var rows=txt.split(/\r?\n/);
+  var cleaned=[];
+  rows.forEach(function(row){
+    var cells=row.split('\t');
+    cells.forEach(function(cell){
+      var c=cell.replace(/^=.*/,'').replace(/^["']|["']$/g,'').replace(/[\x00-\x1f]/g,'').trim();
+      if(c)cleaned.push(c);
+    });
+  });
+  txt=cleaned.join(', ');
+  if(!txt)return;
   var sel=window.getSelection();
   if(!sel.rangeCount)return;
   sel.deleteFromDocument();
@@ -1103,30 +1138,6 @@ function renderAllStudents(){
 
 
 
-const COLOR_GROUPS={
-  'Mon-b1':['Mon-b1','Tue-b1','Fri-b3'],
-  'Tue-b1':['Mon-b1','Tue-b1','Fri-b3'],
-  'Fri-b3':['Mon-b1','Tue-b1','Fri-b3'],
-  'Mon-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
-  'Tue-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
-  'Thu-b3':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
-  'Fri-b2':['Mon-b2','Tue-b2','Thu-b3','Fri-b2'],
-  'Mon-b3':['Mon-b3','Thu-b2'],
-  'Thu-b2':['Mon-b3','Thu-b2'],
-  'Tue-b3':['Tue-b3','Thu-b1','Fri-b1'],
-  'Thu-b1':['Tue-b3','Thu-b1','Fri-b1'],
-  'Fri-b1':['Tue-b3','Thu-b1','Fri-b1'],
-  'Wed-b1':['Wed-b1','Wed-b2','Wed-b3'],
-  'Wed-b2':['Wed-b1','Wed-b2','Wed-b3'],
-  'Wed-b3':['Wed-b1','Wed-b2','Wed-b3'],
-};
-const COLOR_NAMES={
-  'Mon-b1':'🟢 Green (Line 3)','Tue-b1':'🟢 Green (Line 3)','Fri-b3':'🟢 Green (Line 3)',
-  'Mon-b2':'🔵 Blue (Line 1&2)','Tue-b2':'🔵 Blue (Line 1&2)','Thu-b3':'🔵 Blue (Line 1&2)','Fri-b2':'🔵 Blue (Line 1&2)',
-  'Mon-b3':'🟡 Yellow (Line 5)','Thu-b2':'🟡 Yellow (Line 5)',
-  'Tue-b3':'🔴 Red (Line 4)','Thu-b1':'🔴 Red (Line 4)','Fri-b1':'🔴 Red (Line 4)',
-  'Wed-b1':'🟣 Purple','Wed-b2':'🟣 Purple','Wed-b3':'🟣 Purple',
-};
 
 
 function copyToGroup(){
